@@ -8,6 +8,7 @@ Benchmark repo for comparing coding LLM implementations of the same OpenVAS Scan
 - `harness/` — shared black-box runner contract and future benchmark scripts
 - `implementations/` — isolated per-model implementations
 - `fixtures/` — shared non-code fixtures allowed for all implementations
+- `prompts/` — standardized prompt pack for running the benchmark across coding LLMs
 - `results/` — benchmark outputs, logs, and scores
 
 ## Isolation rules
@@ -42,3 +43,9 @@ AGPL-3.0-only. See `LICENSE`.
 ## Status
 
 Initial repo scaffold and first draft mock-server spec created.
+
+Included now:
+
+- a runnable black-box benchmark harness
+- a baseline Rust implementation
+- a standardized prompt pack for spec-only, scaffolded, and repair passes

@@ -1,0 +1,5 @@
+{
+  "name": "baseline-rust",
+  "start_command": ["cargo", "run", "--quiet"],
+  "port_env": "PORT"
+}

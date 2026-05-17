@@ -4,7 +4,7 @@ Put each coding-LLM implementation in its own subdirectory here.
 
 Examples:
 
-- `baseline/`
+- `baseline-rust/`
 - `gpt-5-4/`
 - `claude-sonnet-4-6/`
 - `gemini/`

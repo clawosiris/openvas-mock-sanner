@@ -12,6 +12,11 @@ The harness should:
 4. Record pass/fail, logs, timings, and artifact paths.
 5. Avoid reading implementation internals when scoring correctness.
 
+## Included files
+
+- `run_benchmark.py` — black-box acceptance runner
+- `IMPLEMENTATION_CONTRACT.md` — required manifest contract for each implementation
+
 ## Suggested future files
 
 - `run_benchmark.py` or `run_benchmark.sh`

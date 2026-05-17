@@ -4,5 +4,7 @@ implementations/**/.venv/
 implementations/**/node_modules/
 implementations/**/dist/
 implementations/**/build/
+implementations/**/target/
+__pycache__/
 *.log
 .DS_Store
