@@ -1,0 +1,8 @@
+results/**
+!results/.gitkeep
+implementations/**/.venv/
+implementations/**/node_modules/
+implementations/**/dist/
+implementations/**/build/
+*.log
+.DS_Store
