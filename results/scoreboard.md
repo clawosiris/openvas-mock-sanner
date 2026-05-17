@@ -2,9 +2,9 @@
 
 - Results root: `results`
 - Implementations: 7
-- Total runs: 7
+- Total runs: 8
 - Passed runs: 6
-- Overall pass rate: 85.71%
+- Overall pass rate: 75.0%
 
 ## Per implementation
 
@@ -15,7 +15,7 @@
 | deepseek4-flash | 1 | 1 | 0 | 100.0% | 21.0/21.0 | 20260517-132835 | pass |
 | gpt54 | 1 | 1 | 0 | 100.0% | 21.0/21.0 | 20260517-132836 | pass |
 | gpt55 | 1 | 1 | 0 | 100.0% | 21.0/21.0 | 20260517-132836 | pass |
-| qwencoder | 1 | 0 | 1 | 0.0% | 0.0/0.0 | 20260517-144535 | fail |
+| qwencoder | 2 | 0 | 2 | 0.0% | 0.0/0.5 | 20260517-150430 | fail |
 | qwencoder-next | 1 | 1 | 0 | 100.0% | 21.0/21.0 | 20260517-141738 | pass |
 
 ### baseline-rust
@@ -55,10 +55,11 @@
 
 ### qwencoder
 
-- Runs: 1
+- Runs: 2
 - Pass rate: 0.0%
-- Latest run: `results/qwencoder/20260517-144535/summary.json`
-- Failing checks seen: none 🎉
+- Latest run: `results/qwencoder/20260517-150430/summary.json`
+- Failing checks seen:
+  - `results_delay_poll_1`: 1 time(s)
 
 ### qwencoder-next
 

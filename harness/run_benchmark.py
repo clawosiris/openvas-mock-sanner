@@ -28,7 +28,9 @@ class CheckResult:
 
 
 class BenchmarkFailure(RuntimeError):
-    pass
+    def __init__(self, message: str, check: CheckResult | None = None):
+        super().__init__(message)
+        self.check = check
 
 
 def choose_free_port() -> int:
@@ -85,9 +87,10 @@ def http_json(method: str, url: str, payload: dict[str, Any] | None = None) -> t
 
 
 def expect(condition: bool, name: str, details: str, checks: list[CheckResult]) -> None:
-    checks.append(CheckResult(name=name, passed=condition, details=details))
+    check = CheckResult(name=name, passed=condition, details=details)
+    checks.append(check)
     if not condition:
-        raise BenchmarkFailure(f"{name}: {details}")
+        raise BenchmarkFailure(f"{name}: {details}", check=check)
 
 
 def run_acceptance(base_url: str) -> list[CheckResult]:
@@ -236,6 +239,11 @@ def run_benchmark(implementation: str) -> int:
             exit_code = 0
         except BenchmarkFailure as exc:
             failure_message = str(exc)
+            if exc.check is not None and not any(
+                existing.name == exc.check.name and existing.details == exc.check.details
+                for existing in checks
+            ):
+                checks.append(exc.check)
         finally:
             process.terminate()
             try:
