@@ -15,6 +15,7 @@ The harness should:
 ## Included files
 
 - `run_benchmark.py` — black-box acceptance runner
+- `score.py` — aggregate repeated benchmark runs into per-implementation score summaries
 - `IMPLEMENTATION_CONTRACT.md` — required manifest contract for each implementation
 
 ## Suggested future files
@@ -23,3 +24,13 @@ The harness should:
 - `acceptance/` for black-box lifecycle tests
 - `score.py` for metric aggregation
 - `artifacts/` for temporary runner outputs
+
+## Aggregation
+
+Example:
+
+```bash
+python3 harness/score.py
+python3 harness/score.py --implementation baseline-rust --format markdown
+python3 harness/score.py --write-json results/scoreboard.json --write-markdown results/scoreboard.md
+```
