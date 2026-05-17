@@ -1,0 +1,12 @@
+{
+  "name": "qwencoder",
+  "start_command": ["cargo", "run", "--quiet"],
+  "port_env": "PORT",
+  "env": {
+    "MOCK_RESULT_COUNT": "100",
+    "MOCK_FINDINGS_DELAY_POLLS": "0",
+    "MOCK_SCAN_COMPLETE_POLLS": "1",
+    "MOCK_HOST_COUNT": "10",
+    "MOCK_SEED": "openvas-mock-sanner"
+  }
+}

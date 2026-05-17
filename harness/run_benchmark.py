@@ -225,6 +225,7 @@ def run_benchmark(implementation: str) -> int:
         )
         checks: list[CheckResult] = []
         exit_code = 1
+        failure_message: str | None = None
         try:
             wait_for_port(port, timeout_seconds=60)
             checks = run_acceptance(base_url)
@@ -233,6 +234,8 @@ def run_benchmark(implementation: str) -> int:
             if not invalid_check.passed:
                 raise BenchmarkFailure(f"{invalid_check.name}: {invalid_check.details}")
             exit_code = 0
+        except BenchmarkFailure as exc:
+            failure_message = str(exc)
         finally:
             process.terminate()
             try:
@@ -251,9 +254,13 @@ def run_benchmark(implementation: str) -> int:
             "stderr": str(stderr_path.relative_to(REPO_ROOT)),
         },
     }
+    if failure_message is not None:
+        summary["error"] = failure_message
     with (output_dir / "summary.json").open("w", encoding="utf-8") as fh:
         json.dump(summary, fh, indent=2)
     print(json.dumps(summary, indent=2))
+    if failure_message is not None:
+        print(f"benchmark failed: {failure_message}", file=sys.stderr)
     return exit_code
 
 
@@ -261,11 +268,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run the OpenVAS mock-server benchmark harness")
     parser.add_argument("--implementation", required=True, help="Implementation directory name under implementations/")
     args = parser.parse_args()
-    try:
-        return run_benchmark(args.implementation)
-    except BenchmarkFailure as exc:
-        print(f"benchmark failed: {exc}", file=sys.stderr)
-        return 1
+    return run_benchmark(args.implementation)
 
 
 if __name__ == "__main__":

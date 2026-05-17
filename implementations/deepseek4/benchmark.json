@@ -1,0 +1,12 @@
+{
+  "name": "deepseek4",
+  "start_command": ["cargo", "run", "--quiet"],
+  "port_env": "PORT",
+  "env": {
+    "MOCK_RESULT_COUNT": "7",
+    "MOCK_FINDINGS_DELAY_POLLS": "2",
+    "MOCK_SCAN_COMPLETE_POLLS": "3",
+    "MOCK_HOST_COUNT": "3",
+    "MOCK_SEED": "benchmark-seed"
+  }
+}

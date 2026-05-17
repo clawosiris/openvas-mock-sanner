@@ -1,0 +1,100 @@
+{
+  "results_root": "results",
+  "total_implementations": 7,
+  "total_runs": 7,
+  "total_passed_runs": 6,
+  "overall_pass_rate": 85.71,
+  "implementations": [
+    {
+      "implementation": "baseline-rust",
+      "runs": 1,
+      "passed_runs": 1,
+      "failed_runs": 0,
+      "pass_rate": 100.0,
+      "avg_checks": 21.0,
+      "avg_passed_checks": 21.0,
+      "latest_timestamp": "20260517-130903",
+      "latest_passed": true,
+      "latest_summary_path": "results/baseline-rust/20260517-130903/summary.json",
+      "failing_checks": []
+    },
+    {
+      "implementation": "deepseek4",
+      "runs": 1,
+      "passed_runs": 1,
+      "failed_runs": 0,
+      "pass_rate": 100.0,
+      "avg_checks": 21.0,
+      "avg_passed_checks": 21.0,
+      "latest_timestamp": "20260517-132835",
+      "latest_passed": true,
+      "latest_summary_path": "results/deepseek4/20260517-132835/summary.json",
+      "failing_checks": []
+    },
+    {
+      "implementation": "deepseek4-flash",
+      "runs": 1,
+      "passed_runs": 1,
+      "failed_runs": 0,
+      "pass_rate": 100.0,
+      "avg_checks": 21.0,
+      "avg_passed_checks": 21.0,
+      "latest_timestamp": "20260517-132835",
+      "latest_passed": true,
+      "latest_summary_path": "results/deepseek4-flash/20260517-132835/summary.json",
+      "failing_checks": []
+    },
+    {
+      "implementation": "gpt54",
+      "runs": 1,
+      "passed_runs": 1,
+      "failed_runs": 0,
+      "pass_rate": 100.0,
+      "avg_checks": 21.0,
+      "avg_passed_checks": 21.0,
+      "latest_timestamp": "20260517-132836",
+      "latest_passed": true,
+      "latest_summary_path": "results/gpt54/20260517-132836/summary.json",
+      "failing_checks": []
+    },
+    {
+      "implementation": "gpt55",
+      "runs": 1,
+      "passed_runs": 1,
+      "failed_runs": 0,
+      "pass_rate": 100.0,
+      "avg_checks": 21.0,
+      "avg_passed_checks": 21.0,
+      "latest_timestamp": "20260517-132836",
+      "latest_passed": true,
+      "latest_summary_path": "results/gpt55/20260517-132836/summary.json",
+      "failing_checks": []
+    },
+    {
+      "implementation": "qwencoder",
+      "runs": 1,
+      "passed_runs": 0,
+      "failed_runs": 1,
+      "pass_rate": 0.0,
+      "avg_checks": 0.0,
+      "avg_passed_checks": 0.0,
+      "latest_timestamp": "20260517-144535",
+      "latest_passed": false,
+      "latest_summary_path": "results/qwencoder/20260517-144535/summary.json",
+      "failing_checks": []
+    },
+    {
+      "implementation": "qwencoder-next",
+      "runs": 1,
+      "passed_runs": 1,
+      "failed_runs": 0,
+      "pass_rate": 100.0,
+      "avg_checks": 21.0,
+      "avg_passed_checks": 21.0,
+      "latest_timestamp": "20260517-141738",
+      "latest_passed": true,
+      "latest_summary_path": "results/qwencoder-next/20260517-141738/summary.json",
+      "failing_checks": []
+    }
+  ]
+}

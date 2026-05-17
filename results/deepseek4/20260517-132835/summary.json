@@ -1,0 +1,116 @@
+{
+  "implementation": "deepseek4",
+  "timestamp": "20260517-132835",
+  "passed": true,
+  "checks": [
+    {
+      "name": "create_scan",
+      "passed": true,
+      "details": "status=201, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2'}"
+    },
+    {
+      "name": "status_before_start",
+      "passed": true,
+      "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'created'}"
+    },
+    {
+      "name": "start_scan",
+      "passed": true,
+      "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'running'}"
+    },
+    {
+      "name": "results_delay_poll_1",
+      "passed": true,
+      "details": "status=200, body={'scan_id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'results': []}"
+    },
+    {
+      "name": "results_delay_poll_2",
+      "passed": true,
+      "details": "status=200, body={'scan_id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'results': []}"
+    },
+    {
+      "name": "results_count",
+      "passed": true,
+      "details": "status=200, body_length=7"
+    },
+    {
+      "name": "result_ids_stable",
+      "passed": true,
+      "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+    },
+    {
+      "name": "result_oid_variety",
+      "passed": true,
+      "details": "oid_count=5"
+    },
+    {
+      "name": "results_deterministic",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "name": "status_poll_1",
+      "passed": true,
+      "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'running'}"
+    },
+    {
+      "name": "status_poll_2",
+      "passed": true,
+      "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'running'}"
+    },
+    {
+      "name": "status_poll_3",
+      "passed": true,
+      "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'succeeded'}"
+    },
+    {
+      "name": "invalid_action",
+      "passed": true,
+      "details": "status=400, body={'error': 'unknown action'}"
+    },
+    {
+      "name": "create_scan_for_stop",
+      "passed": true,
+      "details": "status=201, body={'id': 'e2fd97ab-22af-4b06-bbc6-927b0d857733'}"
+    },
+    {
+      "name": "start_scan_for_stop",
+      "passed": true,
+      "details": "status=200, body={'id': 'e2fd97ab-22af-4b06-bbc6-927b0d857733', 'status': 'running'}"
+    },
+    {
+      "name": "stop_scan",
+      "passed": true,
+      "details": "status=200, body={'id': 'e2fd97ab-22af-4b06-bbc6-927b0d857733', 'status': 'stopped'}"
+    },
+    {
+      "name": "delete_scan",
+      "passed": true,
+      "details": "status=204, body=None"
+    },
+    {
+      "name": "deleted_status_404",
+      "passed": true,
+      "details": "status=404, body={'error': 'scan not found'}"
+    },
+    {
+      "name": "deleted_results_404",
+      "passed": true,
+      "details": "status=404, body={'error': 'scan not found'}"
+    },
+    {
+      "name": "deleted_action_404",
+      "passed": true,
+      "details": "status=404, body={'error': 'scan not found'}"
+    },
+    {
+      "name": "invalid_config_fails_fast",
+      "passed": true,
+      "details": "return_code=1"
+    }
+  ],
+  "artifacts": {
+    "stdout": "results/deepseek4/20260517-132835/server.stdout.log",
+    "stderr": "results/deepseek4/20260517-132835/server.stderr.log"
+  }
+}

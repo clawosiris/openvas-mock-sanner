@@ -1,0 +1,116 @@
+{
+  "implementation": "gpt54",
+  "timestamp": "20260517-132836",
+  "passed": true,
+  "checks": [
+    {
+      "name": "create_scan",
+      "passed": true,
+      "details": "status=201, body={'id': 'scan-0001'}"
+    },
+    {
+      "name": "status_before_start",
+      "passed": true,
+      "details": "status=200, body={'id': 'scan-0001', 'status': 'created'}"
+    },
+    {
+      "name": "start_scan",
+      "passed": true,
+      "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+    },
+    {
+      "name": "results_delay_poll_1",
+      "passed": true,
+      "details": "status=200, body={'scan_id': 'scan-0001', 'results': []}"
+    },
+    {
+      "name": "results_delay_poll_2",
+      "passed": true,
+      "details": "status=200, body={'scan_id': 'scan-0001', 'results': []}"
+    },
+    {
+      "name": "results_count",
+      "passed": true,
+      "details": "status=200, body_length=7"
+    },
+    {
+      "name": "result_ids_stable",
+      "passed": true,
+      "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+    },
+    {
+      "name": "result_oid_variety",
+      "passed": true,
+      "details": "oid_count=5"
+    },
+    {
+      "name": "results_deterministic",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "name": "status_poll_1",
+      "passed": true,
+      "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+    },
+    {
+      "name": "status_poll_2",
+      "passed": true,
+      "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+    },
+    {
+      "name": "status_poll_3",
+      "passed": true,
+      "details": "status=200, body={'id': 'scan-0001', 'status': 'succeeded'}"
+    },
+    {
+      "name": "invalid_action",
+      "passed": true,
+      "details": "status=400, body={'error': 'unknown action'}"
+    },
+    {
+      "name": "create_scan_for_stop",
+      "passed": true,
+      "details": "status=201, body={'id': 'scan-0002'}"
+    },
+    {
+      "name": "start_scan_for_stop",
+      "passed": true,
+      "details": "status=200, body={'id': 'scan-0002', 'status': 'running'}"
+    },
+    {
+      "name": "stop_scan",
+      "passed": true,
+      "details": "status=200, body={'id': 'scan-0002', 'status': 'stopped'}"
+    },
+    {
+      "name": "delete_scan",
+      "passed": true,
+      "details": "status=204, body=None"
+    },
+    {
+      "name": "deleted_status_404",
+      "passed": true,
+      "details": "status=404, body={'error': 'scan not found'}"
+    },
+    {
+      "name": "deleted_results_404",
+      "passed": true,
+      "details": "status=404, body={'error': 'scan not found'}"
+    },
+    {
+      "name": "deleted_action_404",
+      "passed": true,
+      "details": "status=404, body={'error': 'scan not found'}"
+    },
+    {
+      "name": "invalid_config_fails_fast",
+      "passed": true,
+      "details": "return_code=1"
+    }
+  ],
+  "artifacts": {
+    "stdout": "results/gpt54/20260517-132836/server.stdout.log",
+    "stderr": "results/gpt54/20260517-132836/server.stderr.log"
+  }
+}
