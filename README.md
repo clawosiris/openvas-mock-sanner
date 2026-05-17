@@ -50,3 +50,4 @@ Included now:
 - a baseline Rust implementation
 - a standardized prompt pack for spec-only, scaffolded, and repair passes
 - a code-quality scoring pipeline for static checks, maintainability heuristics, and reviewer findings
+- recorded model generation-time artifacts for benchmark runs

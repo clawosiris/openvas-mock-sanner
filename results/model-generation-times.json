@@ -1,0 +1,62 @@
+{
+  "note": "These durations are implementation-generation runtimes observed from isolated model runs. They are not the shared harness execution times.",
+  "runs": [
+    {
+      "implementation": "deepseek4",
+      "model": "ollama/deepseek-v4-pro",
+      "status": "completed",
+      "duration_seconds": 330,
+      "duration_human": "5m30s"
+    },
+    {
+      "implementation": "deepseek4-flash",
+      "model": "ollama/deepseek-v4-flash",
+      "status": "completed",
+      "duration_seconds": 757,
+      "duration_human": "12m37s"
+    },
+    {
+      "implementation": "gpt54",
+      "model": "gpt54",
+      "status": "completed",
+      "duration_seconds": 441,
+      "duration_human": "7m21s"
+    },
+    {
+      "implementation": "gpt55",
+      "model": "gpt55",
+      "status": "completed",
+      "duration_seconds": 264,
+      "duration_human": "4m24s"
+    },
+    {
+      "implementation": "qwencoder",
+      "model": "ollama/qwen3-coder",
+      "status": "failed_model_not_found",
+      "duration_seconds": 16,
+      "duration_human": "16s"
+    },
+    {
+      "implementation": "qwencoder",
+      "model": "ollama/qwen3-coder:480b-cloud",
+      "status": "incomplete_attempt",
+      "duration_seconds": 131,
+      "duration_human": "2m11s",
+      "note": "Reported completion but produced no implementation artifacts."
+    },
+    {
+      "implementation": "qwencoder",
+      "model": "ollama/qwen3-coder:480b-cloud",
+      "status": "completed_but_failed_harness",
+      "duration_seconds": 461,
+      "duration_human": "7m41s"
+    },
+    {
+      "implementation": "qwencoder-next",
+      "model": "ollama/qwen3-coder-next",
+      "status": "completed",
+      "duration_seconds": 118,
+      "duration_human": "1m58s"
+    }
+  ]
+}
