@@ -16,6 +16,7 @@ The harness should:
 
 - `run_benchmark.py` — black-box acceptance runner
 - `score.py` — aggregate repeated benchmark runs into per-implementation score summaries
+- `quality_score.py` — score implementations on correctness, static quality, maintainability, and optional reviewer findings
 - `IMPLEMENTATION_CONTRACT.md` — required manifest contract for each implementation
 
 ## Suggested future files
@@ -34,3 +35,24 @@ python3 harness/score.py
 python3 harness/score.py --implementation baseline-rust --format markdown
 python3 harness/score.py --write-json results/scoreboard.json --write-markdown results/scoreboard.md
 ```
+
+## Code quality scoring
+
+Example:
+
+```bash
+python3 harness/quality_score.py
+python3 harness/quality_score.py --implementation gpt55 --format markdown
+python3 harness/quality_score.py --reviews-root reviews --write-json results/quality-scoreboard.json --write-markdown results/quality-scoreboard.md
+```
+
+The quality scorer combines:
+
+- latest benchmark correctness from `results/*/*/summary.json`
+- `cargo check`
+- `cargo fmt --check`
+- `cargo clippy -- -D warnings`
+- lightweight maintainability heuristics (Rust LOC, longest Rust file, dependency count)
+- optional reviewer findings loaded from `reviews/<implementation>.json`
+
+Reviewer findings are optional so you can layer in GitHub Copilot review later without blocking local runs.

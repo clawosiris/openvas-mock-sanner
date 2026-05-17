@@ -1,0 +1,1166 @@
+{
+  "reviews_root": "reviews",
+  "implementations": [
+    {
+      "implementation": "baseline-rust",
+      "benchmark": {
+        "implementation": "baseline-rust",
+        "timestamp": "20260517-130903",
+        "passed": true,
+        "checks": [
+          {
+            "name": "create_scan",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0001'}"
+          },
+          {
+            "name": "status_before_start",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'created'}"
+          },
+          {
+            "name": "start_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "results_delay_poll_1",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_delay_poll_2",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_count",
+            "passed": true,
+            "details": "status=200, body_length=7"
+          },
+          {
+            "name": "result_ids_stable",
+            "passed": true,
+            "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+          },
+          {
+            "name": "result_oid_variety",
+            "passed": true,
+            "details": "oid_count=4"
+          },
+          {
+            "name": "results_deterministic",
+            "passed": true,
+            "details": "status=200"
+          },
+          {
+            "name": "status_poll_1",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_2",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_3",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'succeeded'}"
+          },
+          {
+            "name": "invalid_action",
+            "passed": true,
+            "details": "status=400, body={'error': 'unknown action'}"
+          },
+          {
+            "name": "create_scan_for_stop",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0002'}"
+          },
+          {
+            "name": "start_scan_for_stop",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'running'}"
+          },
+          {
+            "name": "stop_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'stopped'}"
+          },
+          {
+            "name": "delete_scan",
+            "passed": true,
+            "details": "status=200, body={'status': 'deleted'}"
+          },
+          {
+            "name": "deleted_status_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_results_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_action_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "invalid_config_fails_fast",
+            "passed": true,
+            "details": "return_code=2"
+          }
+        ],
+        "artifacts": {
+          "stdout": "results/baseline-rust/20260517-130903/server.stdout.log",
+          "stderr": "results/baseline-rust/20260517-130903/server.stderr.log"
+        },
+        "summary_path": "results/baseline-rust/20260517-130903/summary.json"
+      },
+      "scores": {
+        "correctness": 50.0,
+        "static_quality": 10.0,
+        "maintainability": 6.0,
+        "reviewer": null,
+        "total_without_reviewer": 66.0,
+        "total_with_reviewer": null
+      },
+      "static_checks": {
+        "cargo_check": {
+          "command": [
+            "cargo",
+            "check",
+            "--quiet"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": "warning: field `payload` is never read\n  --> src/main.rs:32:5\n   |\n30 | struct Scan {\n   |        ---- field in this struct\n31 |     scan_id: String,\n32 |     payload: Value,\n   |     ^^^^^^^\n   |\n   = note: `Scan` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: function `respond_empty` is never used\n   --> src/main.rs:182:4\n    |\n182 | fn respond_empty(request: Request, status: u16) {\n    |    ^^^^^^^^^^^^^\n\n"
+        },
+        "cargo_fmt_check": {
+          "command": [
+            "cargo",
+            "fmt",
+            "--check"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        },
+        "cargo_clippy": {
+          "command": [
+            "cargo",
+            "clippy",
+            "--quiet",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "returncode": 101,
+          "passed": false,
+          "stdout": "",
+          "stderr": "error: field `payload` is never read\n  --> src/main.rs:32:5\n   |\n30 | struct Scan {\n   |        ---- field in this struct\n31 |     scan_id: String,\n32 |     payload: Value,\n   |     ^^^^^^^\n   |\n   = note: `Scan` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis\n   = note: `-D dead-code` implied by `-D warnings`\n   = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`\n\nerror: function `respond_empty` is never used\n   --> src/main.rs:182:4\n    |\n182 | fn respond_empty(request: Request, status: u16) {\n    |    ^^^^^^^^^^^^^\n\nerror: could not compile `baseline-rust` (bin \"baseline-rust\") due to 2 previous errors\n"
+        }
+      },
+      "maintainability_metrics": {
+        "rust_loc": 339,
+        "longest_rust_file_lines": 366,
+        "dependency_count": 16,
+        "notes": [
+          "large Rust file: 366 lines",
+          "moderate dependency count: 16"
+        ]
+      },
+      "reviewer_findings": {
+        "review_path": null,
+        "counted_findings": [],
+        "severity_counts": {}
+      }
+    },
+    {
+      "implementation": "deepseek4",
+      "benchmark": {
+        "implementation": "deepseek4",
+        "timestamp": "20260517-132835",
+        "passed": true,
+        "checks": [
+          {
+            "name": "create_scan",
+            "passed": true,
+            "details": "status=201, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2'}"
+          },
+          {
+            "name": "status_before_start",
+            "passed": true,
+            "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'created'}"
+          },
+          {
+            "name": "start_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'running'}"
+          },
+          {
+            "name": "results_delay_poll_1",
+            "passed": true,
+            "details": "status=200, body={'scan_id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'results': []}"
+          },
+          {
+            "name": "results_delay_poll_2",
+            "passed": true,
+            "details": "status=200, body={'scan_id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'results': []}"
+          },
+          {
+            "name": "results_count",
+            "passed": true,
+            "details": "status=200, body_length=7"
+          },
+          {
+            "name": "result_ids_stable",
+            "passed": true,
+            "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+          },
+          {
+            "name": "result_oid_variety",
+            "passed": true,
+            "details": "oid_count=5"
+          },
+          {
+            "name": "results_deterministic",
+            "passed": true,
+            "details": "status=200"
+          },
+          {
+            "name": "status_poll_1",
+            "passed": true,
+            "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_2",
+            "passed": true,
+            "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_3",
+            "passed": true,
+            "details": "status=200, body={'id': 'ef49edb4-9678-47a5-b38d-320984c24ed2', 'status': 'succeeded'}"
+          },
+          {
+            "name": "invalid_action",
+            "passed": true,
+            "details": "status=400, body={'error': 'unknown action'}"
+          },
+          {
+            "name": "create_scan_for_stop",
+            "passed": true,
+            "details": "status=201, body={'id': 'e2fd97ab-22af-4b06-bbc6-927b0d857733'}"
+          },
+          {
+            "name": "start_scan_for_stop",
+            "passed": true,
+            "details": "status=200, body={'id': 'e2fd97ab-22af-4b06-bbc6-927b0d857733', 'status': 'running'}"
+          },
+          {
+            "name": "stop_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'e2fd97ab-22af-4b06-bbc6-927b0d857733', 'status': 'stopped'}"
+          },
+          {
+            "name": "delete_scan",
+            "passed": true,
+            "details": "status=204, body=None"
+          },
+          {
+            "name": "deleted_status_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_results_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_action_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "invalid_config_fails_fast",
+            "passed": true,
+            "details": "return_code=1"
+          }
+        ],
+        "artifacts": {
+          "stdout": "results/deepseek4/20260517-132835/server.stdout.log",
+          "stderr": "results/deepseek4/20260517-132835/server.stderr.log"
+        },
+        "summary_path": "results/deepseek4/20260517-132835/summary.json"
+      },
+      "scores": {
+        "correctness": 50.0,
+        "static_quality": 15.0,
+        "maintainability": 4.0,
+        "reviewer": null,
+        "total_without_reviewer": 69.0,
+        "total_with_reviewer": null
+      },
+      "static_checks": {
+        "cargo_check": {
+          "command": [
+            "cargo",
+            "check",
+            "--quiet"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        },
+        "cargo_fmt_check": {
+          "command": [
+            "cargo",
+            "fmt",
+            "--check"
+          ],
+          "returncode": 1,
+          "passed": false,
+          "stdout": "Diff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:1:\n-use actix_web::{web, App, HttpServer, HttpResponse};\n+use actix_web::{web, App, HttpResponse, HttpServer};\n use serde::{Deserialize, Serialize};\n+use std::collections::hash_map::DefaultHasher;\n use std::collections::HashMap;\n use std::hash::{Hash, Hasher};\n use std::sync::Mutex;\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:6:\n-use std::collections::hash_map::DefaultHasher;\n \n // ---------------------------------------------------------------------------\n // Configuration\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:42:\n \n fn parse_env<T: std::str::FromStr>(name: &str, default: Option<T>) -> Result<T, String> {\n     match std::env::var(name) {\n-        Ok(val) => {\n-            val.trim().parse::<T>().map_err(|_| {\n-                format!(\"Invalid value for {}: {}. Expected an integer.\", name, val)\n-            })\n-        }\n-        Err(std::env::VarError::NotPresent) => {\n-            match default {\n-                Some(d) => Ok(d),\n-                None => Err(format!(\"Missing required environment variable: {}\", name)),\n-            }\n-        }\n+        Ok(val) => val\n+            .trim()\n+            .parse::<T>()\n+            .map_err(|_| format!(\"Invalid value for {}: {}. Expected an integer.\", name, val)),\n+        Err(std::env::VarError::NotPresent) => match default {\n+            Some(d) => Ok(d),\n+            None => Err(format!(\"Missing required environment variable: {}\", name)),\n+        },\n         Err(std::env::VarError::NotUnicode(_)) => {\n             Err(format!(\"Environment variable {} is not valid UTF-8.\", name))\n         }\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:252:\n     let mut scans = state.scans.lock().unwrap();\n     let scan = match scans.get_mut(&scan_id) {\n         Some(s) => s,\n-        None => return HttpResponse::NotFound().json(serde_json::json!({\"error\": \"scan not found\"})),\n+        None => {\n+            return HttpResponse::NotFound().json(serde_json::json!({\"error\": \"scan not found\"}))\n+        }\n     };\n \n     match body.action.as_str() {\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:280:\n                 status: scan.status.as_str().to_string(),\n             })\n         }\n-        _ => {\n-            HttpResponse::BadRequest().json(serde_json::json!({\"error\": \"unknown action\"}))\n-        }\n+        _ => HttpResponse::BadRequest().json(serde_json::json!({\"error\": \"unknown action\"})),\n     }\n }\n \nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:289:\n-async fn get_status(\n-    state: web::Data<AppState>,\n-    path: web::Path<String>,\n-) -> HttpResponse {\n+async fn get_status(state: web::Data<AppState>, path: web::Path<String>) -> HttpResponse {\n     let scan_id = path.into_inner();\n     let config = &state.config;\n \nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:296:\n     let mut scans = state.scans.lock().unwrap();\n     let scan = match scans.get_mut(&scan_id) {\n         Some(s) => s,\n-        None => return HttpResponse::NotFound().json(serde_json::json!({\"error\": \"scan not found\"})),\n+        None => {\n+            return HttpResponse::NotFound().json(serde_json::json!({\"error\": \"scan not found\"}))\n+        }\n     };\n \n     // Advance state: if running and enough polls, transition to succeeded\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:313:\n     })\n }\n \n-async fn get_results(\n-    state: web::Data<AppState>,\n-    path: web::Path<String>,\n-) -> HttpResponse {\n+async fn get_results(state: web::Data<AppState>, path: web::Path<String>) -> HttpResponse {\n     let scan_id = path.into_inner();\n     let config = &state.config;\n \nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:356:\n     })\n }\n \n-async fn delete_scan(\n-    state: web::Data<AppState>,\n-    path: web::Path<String>,\n-) -> HttpResponse {\n+async fn delete_scan(state: web::Data<AppState>, path: web::Path<String>) -> HttpResponse {\n     let scan_id = path.into_inner();\n \n     let mut scans = state.scans.lock().unwrap();\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4/src/main.rs:404:\n         scans: Mutex::new(HashMap::new()),\n     });\n \n-    eprintln!(\n-        \"Starting OpenVAS mock server on 127.0.0.1:{}\",\n-        port\n-    );\n+    eprintln!(\"Starting OpenVAS mock server on 127.0.0.1:{}\", port);\n \n     HttpServer::new(move || {\n         App::new()\n",
+          "stderr": ""
+        },
+        "cargo_clippy": {
+          "command": [
+            "cargo",
+            "clippy",
+            "--quiet",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "maintainability_metrics": {
+        "rust_loc": 343,
+        "longest_rust_file_lines": 425,
+        "dependency_count": 187,
+        "notes": [
+          "large Rust file: 425 lines",
+          "high dependency count: 187"
+        ]
+      },
+      "reviewer_findings": {
+        "review_path": null,
+        "counted_findings": [],
+        "severity_counts": {}
+      }
+    },
+    {
+      "implementation": "deepseek4-flash",
+      "benchmark": {
+        "implementation": "deepseek4-flash",
+        "timestamp": "20260517-132835",
+        "passed": true,
+        "checks": [
+          {
+            "name": "create_scan",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0001'}"
+          },
+          {
+            "name": "status_before_start",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'created'}"
+          },
+          {
+            "name": "start_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "results_delay_poll_1",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_delay_poll_2",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_count",
+            "passed": true,
+            "details": "status=200, body_length=7"
+          },
+          {
+            "name": "result_ids_stable",
+            "passed": true,
+            "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+          },
+          {
+            "name": "result_oid_variety",
+            "passed": true,
+            "details": "oid_count=6"
+          },
+          {
+            "name": "results_deterministic",
+            "passed": true,
+            "details": "status=200"
+          },
+          {
+            "name": "status_poll_1",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_2",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_3",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'succeeded'}"
+          },
+          {
+            "name": "invalid_action",
+            "passed": true,
+            "details": "status=400, body={'error': 'unknown action'}"
+          },
+          {
+            "name": "create_scan_for_stop",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0002'}"
+          },
+          {
+            "name": "start_scan_for_stop",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'running'}"
+          },
+          {
+            "name": "stop_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'stopped'}"
+          },
+          {
+            "name": "delete_scan",
+            "passed": true,
+            "details": "status=200, body={'status': 'deleted'}"
+          },
+          {
+            "name": "deleted_status_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_results_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_action_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "invalid_config_fails_fast",
+            "passed": true,
+            "details": "return_code=2"
+          }
+        ],
+        "artifacts": {
+          "stdout": "results/deepseek4-flash/20260517-132835/server.stdout.log",
+          "stderr": "results/deepseek4-flash/20260517-132835/server.stderr.log"
+        },
+        "summary_path": "results/deepseek4-flash/20260517-132835/summary.json"
+      },
+      "scores": {
+        "correctness": 50.0,
+        "static_quality": 5.0,
+        "maintainability": 4.0,
+        "reviewer": null,
+        "total_without_reviewer": 59.0,
+        "total_with_reviewer": null
+      },
+      "static_checks": {
+        "cargo_check": {
+          "command": [
+            "cargo",
+            "check",
+            "--quiet"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": "warning: field `payload` is never read\n   --> src/main.rs:150:5\n    |\n148 | struct Scan {\n    |        ---- field in this struct\n149 |     scan_id: String,\n150 |     payload: Value,\n    |     ^^^^^^^\n    |\n    = note: `Scan` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis\n    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\n"
+        },
+        "cargo_fmt_check": {
+          "command": [
+            "cargo",
+            "fmt",
+            "--check"
+          ],
+          "returncode": 1,
+          "passed": false,
+          "stdout": "Diff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4-flash/src/main.rs:1:\n use rand::RngCore;\n-use rand_chacha::ChaChaRng;\n use rand_chacha::rand_core::SeedableRng;\n+use rand_chacha::ChaChaRng;\n use serde::Serialize;\n use serde_json::{json, Value};\n use std::collections::HashMap;\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4-flash/src/main.rs:28:\n     let findings_delay = parse_env_usize(\"MOCK_FINDINGS_DELAY_POLLS\", 0)?;\n     let complete_polls = parse_env_usize(\"MOCK_SCAN_COMPLETE_POLLS\", 1)?;\n     let host_count = parse_env_usize(\"MOCK_HOST_COUNT\", 10)?;\n-    let seed_raw =\n-        env::var(\"MOCK_SEED\").unwrap_or_else(|_| \"openvas-mock-sanner\".to_string());\n+    let seed_raw = env::var(\"MOCK_SEED\").unwrap_or_else(|_| \"openvas-mock-sanner\".to_string());\n \n     // Sanity validation\n     if result_count > 1_000_000 {\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4-flash/src/main.rs:66:\n // ---------------------------------------------------------------------------\n \n static TEMPLATES: &[(&str, &str, u16, &str, &str)] = &[\n-    (\"alarm\", \"1.3.6.1.4.1.25623.1.0.147696\", 22, \"tcp\", \"Synthetic SSH finding\"),\n-    (\"alarm\", \"1.3.6.1.4.1.25623.1.0.50282\", 80, \"tcp\", \"Synthetic HTTP service finding\"),\n-    (\"alarm\", \"1.3.6.1.4.1.25623.1.0.10330\", 445, \"tcp\", \"Synthetic SMB fingerprint\"),\n-    (\"log\", \"1.3.6.1.4.1.25623.1.0.117628\", 21, \"tcp\", \"Synthetic FTP observation\"),\n-    (\"alarm\", \"1.3.6.1.4.1.25623.1.0.100315\", 443, \"tcp\", \"Synthetic HTTPS service finding\"),\n-    (\"log\", \"1.3.6.1.4.1.25623.1.0.104002\", 161, \"udp\", \"Synthetic SNMP discovery log\"),\n+    (\n+        \"alarm\",\n+        \"1.3.6.1.4.1.25623.1.0.147696\",\n+        22,\n+        \"tcp\",\n+        \"Synthetic SSH finding\",\n+    ),\n+    (\n+        \"alarm\",\n+        \"1.3.6.1.4.1.25623.1.0.50282\",\n+        80,\n+        \"tcp\",\n+        \"Synthetic HTTP service finding\",\n+    ),\n+    (\n+        \"alarm\",\n+        \"1.3.6.1.4.1.25623.1.0.10330\",\n+        445,\n+        \"tcp\",\n+        \"Synthetic SMB fingerprint\",\n+    ),\n+    (\n+        \"log\",\n+        \"1.3.6.1.4.1.25623.1.0.117628\",\n+        21,\n+        \"tcp\",\n+        \"Synthetic FTP observation\",\n+    ),\n+    (\n+        \"alarm\",\n+        \"1.3.6.1.4.1.25623.1.0.100315\",\n+        443,\n+        \"tcp\",\n+        \"Synthetic HTTPS service finding\",\n+    ),\n+    (\n+        \"log\",\n+        \"1.3.6.1.4.1.25623.1.0.104002\",\n+        161,\n+        \"udp\",\n+        \"Synthetic SNMP discovery log\",\n+    ),\n ];\n \n #[derive(Clone, Serialize)]\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4-flash/src/main.rs:164:\n     let body = serde_json::to_vec(value).unwrap();\n     Response::from_data(body)\n         .with_status_code(StatusCode(status))\n-        .with_header(\n-            Header::from_bytes(&b\"Content-Type\"[..], &b\"application/json\"[..]).unwrap(),\n-        )\n+        .with_header(Header::from_bytes(&b\"Content-Type\"[..], &b\"application/json\"[..]).unwrap())\n }\n \n fn read_json_body(request: &mut Request) -> Result<Value, String> {\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4-flash/src/main.rs:233:\n                     return;\n                 }\n             };\n-            let action = payload\n-                .get(\"action\")\n-                .and_then(|v| v.as_str())\n-                .unwrap_or(\"\");\n+            let action = payload.get(\"action\").and_then(|v| v.as_str()).unwrap_or(\"\");\n \n             let mut state = state.lock().unwrap();\n             let Some(scan) = state.scans.get_mut(*scan_id) else {\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4-flash/src/main.rs:265:\n                     ));\n                 }\n                 _ => {\n-                    let _ = request.respond(json_response(400, &json!({\"error\": \"unknown action\"})));\n+                    let _ =\n+                        request.respond(json_response(400, &json!({\"error\": \"unknown action\"})));\n                 }\n             }\n         }\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/deepseek4-flash/src/main.rs:301:\n                 let cfg = state.config.clone();\n \n                 let Some(scan) = state.scans.get_mut(&scan_id_owned) else {\n-                    let _ = request.respond(json_response(404, &json!({\"error\": \"scan not found\"})));\n+                    let _ =\n+                        request.respond(json_response(404, &json!({\"error\": \"scan not found\"})));\n                     return;\n                 };\n \n",
+          "stderr": ""
+        },
+        "cargo_clippy": {
+          "command": [
+            "cargo",
+            "clippy",
+            "--quiet",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "returncode": 101,
+          "passed": false,
+          "stdout": "",
+          "stderr": "error: field `payload` is never read\n   --> src/main.rs:150:5\n    |\n148 | struct Scan {\n    |        ---- field in this struct\n149 |     scan_id: String,\n150 |     payload: Value,\n    |     ^^^^^^^\n    |\n    = note: `Scan` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis\n    = note: `-D dead-code` implied by `-D warnings`\n    = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`\n\nerror: manual `!RangeInclusive::contains` implementation\n  --> src/main.rs:38:8\n   |\n38 |     if host_count < 1 || host_count > 100_000 {\n   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `!(1..=100_000).contains(&host_count)`\n   |\n   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#manual_range_contains\n   = note: `-D clippy::manual-range-contains` implied by `-D warnings`\n   = help: to override `-D warnings` add `#[allow(clippy::manual_range_contains)]`\n\nerror: could not compile `deepseek4-flash` (bin \"deepseek4-flash\") due to 2 previous errors\n"
+        }
+      },
+      "maintainability_metrics": {
+        "rust_loc": 325,
+        "longest_rust_file_lines": 409,
+        "dependency_count": 26,
+        "notes": [
+          "large Rust file: 409 lines",
+          "high dependency count: 26"
+        ]
+      },
+      "reviewer_findings": {
+        "review_path": null,
+        "counted_findings": [],
+        "severity_counts": {}
+      }
+    },
+    {
+      "implementation": "gpt54",
+      "benchmark": {
+        "implementation": "gpt54",
+        "timestamp": "20260517-132836",
+        "passed": true,
+        "checks": [
+          {
+            "name": "create_scan",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0001'}"
+          },
+          {
+            "name": "status_before_start",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'created'}"
+          },
+          {
+            "name": "start_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "results_delay_poll_1",
+            "passed": true,
+            "details": "status=200, body={'scan_id': 'scan-0001', 'results': []}"
+          },
+          {
+            "name": "results_delay_poll_2",
+            "passed": true,
+            "details": "status=200, body={'scan_id': 'scan-0001', 'results': []}"
+          },
+          {
+            "name": "results_count",
+            "passed": true,
+            "details": "status=200, body_length=7"
+          },
+          {
+            "name": "result_ids_stable",
+            "passed": true,
+            "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+          },
+          {
+            "name": "result_oid_variety",
+            "passed": true,
+            "details": "oid_count=5"
+          },
+          {
+            "name": "results_deterministic",
+            "passed": true,
+            "details": "status=200"
+          },
+          {
+            "name": "status_poll_1",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_2",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_3",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'succeeded'}"
+          },
+          {
+            "name": "invalid_action",
+            "passed": true,
+            "details": "status=400, body={'error': 'unknown action'}"
+          },
+          {
+            "name": "create_scan_for_stop",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0002'}"
+          },
+          {
+            "name": "start_scan_for_stop",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'running'}"
+          },
+          {
+            "name": "stop_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'stopped'}"
+          },
+          {
+            "name": "delete_scan",
+            "passed": true,
+            "details": "status=204, body=None"
+          },
+          {
+            "name": "deleted_status_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_results_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_action_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "invalid_config_fails_fast",
+            "passed": true,
+            "details": "return_code=1"
+          }
+        ],
+        "artifacts": {
+          "stdout": "results/gpt54/20260517-132836/server.stdout.log",
+          "stderr": "results/gpt54/20260517-132836/server.stderr.log"
+        },
+        "summary_path": "results/gpt54/20260517-132836/summary.json"
+      },
+      "scores": {
+        "correctness": 50.0,
+        "static_quality": 15.0,
+        "maintainability": 4.0,
+        "reviewer": null,
+        "total_without_reviewer": 69.0,
+        "total_with_reviewer": null
+      },
+      "static_checks": {
+        "cargo_check": {
+          "command": [
+            "cargo",
+            "check",
+            "--quiet"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        },
+        "cargo_fmt_check": {
+          "command": [
+            "cargo",
+            "fmt",
+            "--check"
+          ],
+          "returncode": 1,
+          "passed": false,
+          "stdout": "Diff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/gpt54/src/main.rs:175:\n     Json(payload): Json<Value>,\n ) -> impl IntoResponse {\n     if !payload.is_object() {\n-        return (StatusCode::BAD_REQUEST, Json(json_error(\"request body must be a JSON object\"))).into_response();\n+        return (\n+            StatusCode::BAD_REQUEST,\n+            Json(json_error(\"request body must be a JSON object\")),\n+        )\n+            .into_response();\n     }\n \n     let mut inner = state.inner.lock().expect(\"state poisoned\");\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/gpt54/src/main.rs:192:\n         },\n     );\n \n-    (StatusCode::CREATED, Json(CreateScanResponse { id: scan_id })).into_response()\n+    (\n+        StatusCode::CREATED,\n+        Json(CreateScanResponse { id: scan_id }),\n+    )\n+        .into_response()\n }\n \n async fn scan_action(\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/gpt54/src/main.rs:207:\n \n     match payload.action.as_str() {\n         \"start\" => {\n-            if matches!(scan.lifecycle, LifecycleStatus::Created | LifecycleStatus::Stopped) {\n+            if matches!(\n+                scan.lifecycle,\n+                LifecycleStatus::Created | LifecycleStatus::Stopped\n+            ) {\n                 scan.lifecycle = LifecycleStatus::Running;\n                 scan.status_polls_since_start = 0;\n                 scan.result_polls_since_start = 0;\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/gpt54/src/main.rs:341:\n \n fn mix_u64(seed: &str, scan_id: &str, n: u64) -> u64 {\n     let mut value: u64 = 0xcbf29ce484222325;\n-    for byte in seed.as_bytes().iter().chain(scan_id.as_bytes()).chain(n.to_string().as_bytes()) {\n+    for byte in seed\n+        .as_bytes()\n+        .iter()\n+        .chain(scan_id.as_bytes())\n+        .chain(n.to_string().as_bytes())\n+    {\n         value ^= u64::from(*byte);\n         value = value.wrapping_mul(0x100000001b3);\n     }\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/gpt54/src/main.rs:349:\n }\n \n fn ok_status(scan_id: String, lifecycle: LifecycleStatus) -> axum::response::Response {\n-    (StatusCode::OK, Json(ScanStatusResponse {\n-        id: scan_id,\n-        status: lifecycle.as_str().to_string(),\n-    }))\n+    (\n+        StatusCode::OK,\n+        Json(ScanStatusResponse {\n+            id: scan_id,\n+            status: lifecycle.as_str().to_string(),\n+        }),\n+    )\n         .into_response()\n }\n \n",
+          "stderr": ""
+        },
+        "cargo_clippy": {
+          "command": [
+            "cargo",
+            "clippy",
+            "--quiet",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "maintainability_metrics": {
+        "rust_loc": 323,
+        "longest_rust_file_lines": 365,
+        "dependency_count": 56,
+        "notes": [
+          "large Rust file: 365 lines",
+          "high dependency count: 56"
+        ]
+      },
+      "reviewer_findings": {
+        "review_path": null,
+        "counted_findings": [],
+        "severity_counts": {}
+      }
+    },
+    {
+      "implementation": "gpt55",
+      "benchmark": {
+        "implementation": "gpt55",
+        "timestamp": "20260517-132836",
+        "passed": true,
+        "checks": [
+          {
+            "name": "create_scan",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0001'}"
+          },
+          {
+            "name": "status_before_start",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'created'}"
+          },
+          {
+            "name": "start_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "results_delay_poll_1",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_delay_poll_2",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_count",
+            "passed": true,
+            "details": "status=200, body_length=7"
+          },
+          {
+            "name": "result_ids_stable",
+            "passed": true,
+            "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+          },
+          {
+            "name": "result_oid_variety",
+            "passed": true,
+            "details": "oid_count=5"
+          },
+          {
+            "name": "results_deterministic",
+            "passed": true,
+            "details": "status=200"
+          },
+          {
+            "name": "status_poll_1",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_2",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_3",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'succeeded'}"
+          },
+          {
+            "name": "invalid_action",
+            "passed": true,
+            "details": "status=400, body={'error': 'unknown scan action'}"
+          },
+          {
+            "name": "create_scan_for_stop",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0002'}"
+          },
+          {
+            "name": "start_scan_for_stop",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'running'}"
+          },
+          {
+            "name": "stop_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'stopped'}"
+          },
+          {
+            "name": "delete_scan",
+            "passed": true,
+            "details": "status=204, body=None"
+          },
+          {
+            "name": "deleted_status_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'not found'}"
+          },
+          {
+            "name": "deleted_results_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'not found'}"
+          },
+          {
+            "name": "deleted_action_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'not found'}"
+          },
+          {
+            "name": "invalid_config_fails_fast",
+            "passed": true,
+            "details": "return_code=2"
+          }
+        ],
+        "artifacts": {
+          "stdout": "results/gpt55/20260517-132836/server.stdout.log",
+          "stderr": "results/gpt55/20260517-132836/server.stderr.log"
+        },
+        "summary_path": "results/gpt55/20260517-132836/summary.json"
+      },
+      "scores": {
+        "correctness": 50.0,
+        "static_quality": 10.0,
+        "maintainability": 4.0,
+        "reviewer": null,
+        "total_without_reviewer": 64.0,
+        "total_with_reviewer": null
+      },
+      "static_checks": {
+        "cargo_check": {
+          "command": [
+            "cargo",
+            "check",
+            "--quiet"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        },
+        "cargo_fmt_check": {
+          "command": [
+            "cargo",
+            "fmt",
+            "--check"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        },
+        "cargo_clippy": {
+          "command": [
+            "cargo",
+            "clippy",
+            "--quiet",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "returncode": 101,
+          "passed": false,
+          "stdout": "",
+          "stderr": "error: manual implementation of `.is_multiple_of()`\n   --> src/main.rs:327:35\n    |\n327 |             let finding_type = if mixed % 5 == 0 { \"log\" } else { \"alarm\" };\n    |                                   ^^^^^^^^^^^^^^ help: replace with: `mixed.is_multiple_of(5)`\n    |\n    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#manual_is_multiple_of\n    = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`\n    = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`\n\nerror: manual implementation of `.is_multiple_of()`\n   --> src/main.rs:328:65\n    |\n328 |             let protocol = if ports[idx % ports.len()] == 53 && mixed % 2 == 0 {\n    |                                                                 ^^^^^^^^^^^^^^ help: replace with: `mixed.is_multiple_of(2)`\n    |\n    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#manual_is_multiple_of\n\nerror: could not compile `openvas-mock-gpt55` (bin \"openvas-mock-gpt55\") due to 2 previous errors\n"
+        }
+      },
+      "maintainability_metrics": {
+        "rust_loc": 347,
+        "longest_rust_file_lines": 390,
+        "dependency_count": 54,
+        "notes": [
+          "large Rust file: 390 lines",
+          "high dependency count: 54"
+        ]
+      },
+      "reviewer_findings": {
+        "review_path": null,
+        "counted_findings": [],
+        "severity_counts": {}
+      }
+    },
+    {
+      "implementation": "qwencoder",
+      "benchmark": {
+        "implementation": "qwencoder",
+        "timestamp": "20260517-150430",
+        "passed": false,
+        "checks": [
+          {
+            "name": "results_delay_poll_1",
+            "passed": false,
+            "details": "status=200, body={'scan_id': 'scan-0001', 'results': [{'id': 1, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 64711, 'protocol': 'tcp', 'message': 'Synthetic finding text #1'}, {'id': 2, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 7403, 'protocol': 'udp', 'message': 'Synthetic finding text #2'}, {'id': 3, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 2640, 'protocol': 'tcp', 'message': 'Synthetic finding text #3'}, {'id': 4, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 21857, 'protocol': 'tcp', 'message': 'Synthetic finding text #4'}, {'id': 5, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 49458, 'protocol': 'udp', 'message': 'Synthetic finding text #5'}, {'id': 6, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 1576, 'protocol': 'udp', 'message': 'Synthetic finding text #6'}, {'id': 7, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 15287, 'protocol': 'tcp', 'message': 'Synthetic finding text #7'}, {'id': 8, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 22931, 'protocol': 'tcp', 'message': 'Synthetic finding text #8'}, {'id': 9, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 39417, 'protocol': 'tcp', 'message': 'Synthetic finding text #9'}, {'id': 10, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 50635, 'protocol': 'tcp', 'message': 'Synthetic finding text #10'}, {'id': 11, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 61797, 'protocol': 'tcp', 'message': 'Synthetic finding text #11'}, {'id': 12, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 35640, 'protocol': 'udp', 'message': 'Synthetic finding text #12'}, {'id': 13, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 5459, 'protocol': 'tcp', 'message': 'Synthetic finding text #13'}, {'id': 14, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 41976, 'protocol': 'tcp', 'message': 'Synthetic finding text #14'}, {'id': 15, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 13342, 'protocol': 'tcp', 'message': 'Synthetic finding text #15'}, {'id': 16, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 60675, 'protocol': 'udp', 'message': 'Synthetic finding text #16'}, {'id': 17, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 54251, 'protocol': 'udp', 'message': 'Synthetic finding text #17'}, {'id': 18, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 15782, 'protocol': 'udp', 'message': 'Synthetic finding text #18'}, {'id': 19, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 35292, 'protocol': 'udp', 'message': 'Synthetic finding text #19'}, {'id': 20, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 8619, 'protocol': 'tcp', 'message': 'Synthetic finding text #20'}, {'id': 21, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 19376, 'protocol': 'udp', 'message': 'Synthetic finding text #21'}, {'id': 22, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 62607, 'protocol': 'udp', 'message': 'Synthetic finding text #22'}, {'id': 23, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 37286, 'protocol': 'tcp', 'message': 'Synthetic finding text #23'}, {'id': 24, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 42252, 'protocol': 'tcp', 'message': 'Synthetic finding text #24'}, {'id': 25, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 5360, 'protocol': 'tcp', 'message': 'Synthetic finding text #25'}, {'id': 26, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 10632, 'protocol': 'udp', 'message': 'Synthetic finding text #26'}, {'id': 27, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 15358, 'protocol': 'tcp', 'message': 'Synthetic finding text #27'}, {'id': 28, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 46754, 'protocol': 'tcp', 'message': 'Synthetic finding text #28'}, {'id': 29, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 31869, 'protocol': 'tcp', 'message': 'Synthetic finding text #29'}, {'id': 30, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 55731, 'protocol': 'tcp', 'message': 'Synthetic finding text #30'}, {'id': 31, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 217, 'protocol': 'tcp', 'message': 'Synthetic finding text #31'}, {'id': 32, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 19236, 'protocol': 'udp', 'message': 'Synthetic finding text #32'}, {'id': 33, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 1118, 'protocol': 'udp', 'message': 'Synthetic finding text #33'}, {'id': 34, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 51441, 'protocol': 'udp', 'message': 'Synthetic finding text #34'}, {'id': 35, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 32306, 'protocol': 'udp', 'message': 'Synthetic finding text #35'}, {'id': 36, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 31500, 'protocol': 'udp', 'message': 'Synthetic finding text #36'}, {'id': 37, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 47483, 'protocol': 'udp', 'message': 'Synthetic finding text #37'}, {'id': 38, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 7491, 'protocol': 'udp', 'message': 'Synthetic finding text #38'}, {'id': 39, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 42124, 'protocol': 'tcp', 'message': 'Synthetic finding text #39'}, {'id': 40, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 11732, 'protocol': 'tcp', 'message': 'Synthetic finding text #40'}, {'id': 41, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 64888, 'protocol': 'udp', 'message': 'Synthetic finding text #41'}, {'id': 42, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 37861, 'protocol': 'tcp', 'message': 'Synthetic finding text #42'}, {'id': 43, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 36063, 'protocol': 'udp', 'message': 'Synthetic finding text #43'}, {'id': 44, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 55598, 'protocol': 'tcp', 'message': 'Synthetic finding text #44'}, {'id': 45, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 34692, 'protocol': 'tcp', 'message': 'Synthetic finding text #45'}, {'id': 46, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 5456, 'protocol': 'udp', 'message': 'Synthetic finding text #46'}, {'id': 47, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 28125, 'protocol': 'udp', 'message': 'Synthetic finding text #47'}, {'id': 48, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 26397, 'protocol': 'udp', 'message': 'Synthetic finding text #48'}, {'id': 49, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 11367, 'protocol': 'tcp', 'message': 'Synthetic finding text #49'}, {'id': 50, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 64346, 'protocol': 'udp', 'message': 'Synthetic finding text #50'}, {'id': 51, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 58849, 'protocol': 'udp', 'message': 'Synthetic finding text #51'}, {'id': 52, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 52461, 'protocol': 'udp', 'message': 'Synthetic finding text #52'}, {'id': 53, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 18737, 'protocol': 'udp', 'message': 'Synthetic finding text #53'}, {'id': 54, 'type': 'log', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 18024, 'protocol': 'udp', 'message': 'Synthetic finding text #54'}, {'id': 55, 'type': 'log', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 38559, 'protocol': 'tcp', 'message': 'Synthetic finding text #55'}, {'id': 56, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 5883, 'protocol': 'udp', 'message': 'Synthetic finding text #56'}, {'id': 57, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 42144, 'protocol': 'udp', 'message': 'Synthetic finding text #57'}, {'id': 58, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 17785, 'protocol': 'udp', 'message': 'Synthetic finding text #58'}, {'id': 59, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 55065, 'protocol': 'tcp', 'message': 'Synthetic finding text #59'}, {'id': 60, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 30959, 'protocol': 'tcp', 'message': 'Synthetic finding text #60'}, {'id': 61, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 3561, 'protocol': 'tcp', 'message': 'Synthetic finding text #61'}, {'id': 62, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 43314, 'protocol': 'udp', 'message': 'Synthetic finding text #62'}, {'id': 63, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 8468, 'protocol': 'udp', 'message': 'Synthetic finding text #63'}, {'id': 64, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 51126, 'protocol': 'udp', 'message': 'Synthetic finding text #64'}, {'id': 65, 'type': 'log', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 16087, 'protocol': 'tcp', 'message': 'Synthetic finding text #65'}, {'id': 66, 'type': 'alarm', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 9447, 'protocol': 'tcp', 'message': 'Synthetic finding text #66'}, {'id': 67, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 60354, 'protocol': 'udp', 'message': 'Synthetic finding text #67'}, {'id': 68, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 24975, 'protocol': 'tcp', 'message': 'Synthetic finding text #68'}, {'id': 69, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 62187, 'protocol': 'tcp', 'message': 'Synthetic finding text #69'}, {'id': 70, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 53894, 'protocol': 'udp', 'message': 'Synthetic finding text #70'}, {'id': 71, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 56704, 'protocol': 'tcp', 'message': 'Synthetic finding text #71'}, {'id': 72, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 38431, 'protocol': 'tcp', 'message': 'Synthetic finding text #72'}, {'id': 73, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 22559, 'protocol': 'udp', 'message': 'Synthetic finding text #73'}, {'id': 74, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 17165, 'protocol': 'tcp', 'message': 'Synthetic finding text #74'}, {'id': 75, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 29141, 'protocol': 'udp', 'message': 'Synthetic finding text #75'}, {'id': 76, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 32179, 'protocol': 'tcp', 'message': 'Synthetic finding text #76'}, {'id': 77, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 51204, 'protocol': 'tcp', 'message': 'Synthetic finding text #77'}, {'id': 78, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 27067, 'protocol': 'tcp', 'message': 'Synthetic finding text #78'}, {'id': 79, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 8537, 'protocol': 'tcp', 'message': 'Synthetic finding text #79'}, {'id': 80, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 37058, 'protocol': 'udp', 'message': 'Synthetic finding text #80'}, {'id': 81, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 59127, 'protocol': 'udp', 'message': 'Synthetic finding text #81'}, {'id': 82, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 27579, 'protocol': 'udp', 'message': 'Synthetic finding text #82'}, {'id': 83, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 46809, 'protocol': 'udp', 'message': 'Synthetic finding text #83'}, {'id': 84, 'type': 'log', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 33336, 'protocol': 'udp', 'message': 'Synthetic finding text #84'}, {'id': 85, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 34819, 'protocol': 'tcp', 'message': 'Synthetic finding text #85'}, {'id': 86, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 41227, 'protocol': 'udp', 'message': 'Synthetic finding text #86'}, {'id': 87, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 35278, 'protocol': 'tcp', 'message': 'Synthetic finding text #87'}, {'id': 88, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 58371, 'protocol': 'tcp', 'message': 'Synthetic finding text #88'}, {'id': 89, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 43659, 'protocol': 'udp', 'message': 'Synthetic finding text #89'}, {'id': 90, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 7585, 'protocol': 'udp', 'message': 'Synthetic finding text #90'}, {'id': 91, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 45578, 'protocol': 'udp', 'message': 'Synthetic finding text #91'}, {'id': 92, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 59791, 'protocol': 'tcp', 'message': 'Synthetic finding text #92'}, {'id': 93, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 841, 'protocol': 'tcp', 'message': 'Synthetic finding text #93'}, {'id': 94, 'type': 'log', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 25287, 'protocol': 'tcp', 'message': 'Synthetic finding text #94'}, {'id': 95, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 32045, 'protocol': 'udp', 'message': 'Synthetic finding text #95'}, {'id': 96, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 6855, 'protocol': 'tcp', 'message': 'Synthetic finding text #96'}, {'id': 97, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 34423, 'protocol': 'tcp', 'message': 'Synthetic finding text #97'}, {'id': 98, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 48499, 'protocol': 'udp', 'message': 'Synthetic finding text #98'}, {'id': 99, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 37651, 'protocol': 'tcp', 'message': 'Synthetic finding text #99'}, {'id': 100, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 19383, 'protocol': 'udp', 'message': 'Synthetic finding text #100'}]}"
+          }
+        ],
+        "artifacts": {
+          "stdout": "results/qwencoder/20260517-150430/server.stdout.log",
+          "stderr": "results/qwencoder/20260517-150430/server.stderr.log"
+        },
+        "error": "results_delay_poll_1: status=200, body={'scan_id': 'scan-0001', 'results': [{'id': 1, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 64711, 'protocol': 'tcp', 'message': 'Synthetic finding text #1'}, {'id': 2, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 7403, 'protocol': 'udp', 'message': 'Synthetic finding text #2'}, {'id': 3, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 2640, 'protocol': 'tcp', 'message': 'Synthetic finding text #3'}, {'id': 4, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 21857, 'protocol': 'tcp', 'message': 'Synthetic finding text #4'}, {'id': 5, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 49458, 'protocol': 'udp', 'message': 'Synthetic finding text #5'}, {'id': 6, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 1576, 'protocol': 'udp', 'message': 'Synthetic finding text #6'}, {'id': 7, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 15287, 'protocol': 'tcp', 'message': 'Synthetic finding text #7'}, {'id': 8, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 22931, 'protocol': 'tcp', 'message': 'Synthetic finding text #8'}, {'id': 9, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 39417, 'protocol': 'tcp', 'message': 'Synthetic finding text #9'}, {'id': 10, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 50635, 'protocol': 'tcp', 'message': 'Synthetic finding text #10'}, {'id': 11, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 61797, 'protocol': 'tcp', 'message': 'Synthetic finding text #11'}, {'id': 12, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 35640, 'protocol': 'udp', 'message': 'Synthetic finding text #12'}, {'id': 13, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 5459, 'protocol': 'tcp', 'message': 'Synthetic finding text #13'}, {'id': 14, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 41976, 'protocol': 'tcp', 'message': 'Synthetic finding text #14'}, {'id': 15, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 13342, 'protocol': 'tcp', 'message': 'Synthetic finding text #15'}, {'id': 16, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 60675, 'protocol': 'udp', 'message': 'Synthetic finding text #16'}, {'id': 17, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 54251, 'protocol': 'udp', 'message': 'Synthetic finding text #17'}, {'id': 18, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 15782, 'protocol': 'udp', 'message': 'Synthetic finding text #18'}, {'id': 19, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 35292, 'protocol': 'udp', 'message': 'Synthetic finding text #19'}, {'id': 20, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 8619, 'protocol': 'tcp', 'message': 'Synthetic finding text #20'}, {'id': 21, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 19376, 'protocol': 'udp', 'message': 'Synthetic finding text #21'}, {'id': 22, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 62607, 'protocol': 'udp', 'message': 'Synthetic finding text #22'}, {'id': 23, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 37286, 'protocol': 'tcp', 'message': 'Synthetic finding text #23'}, {'id': 24, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 42252, 'protocol': 'tcp', 'message': 'Synthetic finding text #24'}, {'id': 25, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 5360, 'protocol': 'tcp', 'message': 'Synthetic finding text #25'}, {'id': 26, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 10632, 'protocol': 'udp', 'message': 'Synthetic finding text #26'}, {'id': 27, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 15358, 'protocol': 'tcp', 'message': 'Synthetic finding text #27'}, {'id': 28, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 46754, 'protocol': 'tcp', 'message': 'Synthetic finding text #28'}, {'id': 29, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 31869, 'protocol': 'tcp', 'message': 'Synthetic finding text #29'}, {'id': 30, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 55731, 'protocol': 'tcp', 'message': 'Synthetic finding text #30'}, {'id': 31, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 217, 'protocol': 'tcp', 'message': 'Synthetic finding text #31'}, {'id': 32, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 19236, 'protocol': 'udp', 'message': 'Synthetic finding text #32'}, {'id': 33, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 1118, 'protocol': 'udp', 'message': 'Synthetic finding text #33'}, {'id': 34, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 51441, 'protocol': 'udp', 'message': 'Synthetic finding text #34'}, {'id': 35, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 32306, 'protocol': 'udp', 'message': 'Synthetic finding text #35'}, {'id': 36, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 31500, 'protocol': 'udp', 'message': 'Synthetic finding text #36'}, {'id': 37, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 47483, 'protocol': 'udp', 'message': 'Synthetic finding text #37'}, {'id': 38, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 7491, 'protocol': 'udp', 'message': 'Synthetic finding text #38'}, {'id': 39, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 42124, 'protocol': 'tcp', 'message': 'Synthetic finding text #39'}, {'id': 40, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 11732, 'protocol': 'tcp', 'message': 'Synthetic finding text #40'}, {'id': 41, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 64888, 'protocol': 'udp', 'message': 'Synthetic finding text #41'}, {'id': 42, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 37861, 'protocol': 'tcp', 'message': 'Synthetic finding text #42'}, {'id': 43, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 36063, 'protocol': 'udp', 'message': 'Synthetic finding text #43'}, {'id': 44, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 55598, 'protocol': 'tcp', 'message': 'Synthetic finding text #44'}, {'id': 45, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 34692, 'protocol': 'tcp', 'message': 'Synthetic finding text #45'}, {'id': 46, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 5456, 'protocol': 'udp', 'message': 'Synthetic finding text #46'}, {'id': 47, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 28125, 'protocol': 'udp', 'message': 'Synthetic finding text #47'}, {'id': 48, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 26397, 'protocol': 'udp', 'message': 'Synthetic finding text #48'}, {'id': 49, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 11367, 'protocol': 'tcp', 'message': 'Synthetic finding text #49'}, {'id': 50, 'type': 'alarm', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 64346, 'protocol': 'udp', 'message': 'Synthetic finding text #50'}, {'id': 51, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 58849, 'protocol': 'udp', 'message': 'Synthetic finding text #51'}, {'id': 52, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 52461, 'protocol': 'udp', 'message': 'Synthetic finding text #52'}, {'id': 53, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 18737, 'protocol': 'udp', 'message': 'Synthetic finding text #53'}, {'id': 54, 'type': 'log', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 18024, 'protocol': 'udp', 'message': 'Synthetic finding text #54'}, {'id': 55, 'type': 'log', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 38559, 'protocol': 'tcp', 'message': 'Synthetic finding text #55'}, {'id': 56, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 5883, 'protocol': 'udp', 'message': 'Synthetic finding text #56'}, {'id': 57, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 42144, 'protocol': 'udp', 'message': 'Synthetic finding text #57'}, {'id': 58, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 17785, 'protocol': 'udp', 'message': 'Synthetic finding text #58'}, {'id': 59, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 55065, 'protocol': 'tcp', 'message': 'Synthetic finding text #59'}, {'id': 60, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 30959, 'protocol': 'tcp', 'message': 'Synthetic finding text #60'}, {'id': 61, 'type': 'log', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 3561, 'protocol': 'tcp', 'message': 'Synthetic finding text #61'}, {'id': 62, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 43314, 'protocol': 'udp', 'message': 'Synthetic finding text #62'}, {'id': 63, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 8468, 'protocol': 'udp', 'message': 'Synthetic finding text #63'}, {'id': 64, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 51126, 'protocol': 'udp', 'message': 'Synthetic finding text #64'}, {'id': 65, 'type': 'log', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 16087, 'protocol': 'tcp', 'message': 'Synthetic finding text #65'}, {'id': 66, 'type': 'alarm', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 9447, 'protocol': 'tcp', 'message': 'Synthetic finding text #66'}, {'id': 67, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 60354, 'protocol': 'udp', 'message': 'Synthetic finding text #67'}, {'id': 68, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 24975, 'protocol': 'tcp', 'message': 'Synthetic finding text #68'}, {'id': 69, 'type': 'alarm', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 62187, 'protocol': 'tcp', 'message': 'Synthetic finding text #69'}, {'id': 70, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 53894, 'protocol': 'udp', 'message': 'Synthetic finding text #70'}, {'id': 71, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 56704, 'protocol': 'tcp', 'message': 'Synthetic finding text #71'}, {'id': 72, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 38431, 'protocol': 'tcp', 'message': 'Synthetic finding text #72'}, {'id': 73, 'type': 'log', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 22559, 'protocol': 'udp', 'message': 'Synthetic finding text #73'}, {'id': 74, 'type': 'alarm', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 17165, 'protocol': 'tcp', 'message': 'Synthetic finding text #74'}, {'id': 75, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 29141, 'protocol': 'udp', 'message': 'Synthetic finding text #75'}, {'id': 76, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 32179, 'protocol': 'tcp', 'message': 'Synthetic finding text #76'}, {'id': 77, 'type': 'alarm', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 51204, 'protocol': 'tcp', 'message': 'Synthetic finding text #77'}, {'id': 78, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 27067, 'protocol': 'tcp', 'message': 'Synthetic finding text #78'}, {'id': 79, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 8537, 'protocol': 'tcp', 'message': 'Synthetic finding text #79'}, {'id': 80, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 37058, 'protocol': 'udp', 'message': 'Synthetic finding text #80'}, {'id': 81, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 59127, 'protocol': 'udp', 'message': 'Synthetic finding text #81'}, {'id': 82, 'type': 'log', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 27579, 'protocol': 'udp', 'message': 'Synthetic finding text #82'}, {'id': 83, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 46809, 'protocol': 'udp', 'message': 'Synthetic finding text #83'}, {'id': 84, 'type': 'log', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 33336, 'protocol': 'udp', 'message': 'Synthetic finding text #84'}, {'id': 85, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 34819, 'protocol': 'tcp', 'message': 'Synthetic finding text #85'}, {'id': 86, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 41227, 'protocol': 'udp', 'message': 'Synthetic finding text #86'}, {'id': 87, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 35278, 'protocol': 'tcp', 'message': 'Synthetic finding text #87'}, {'id': 88, 'type': 'alarm', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 58371, 'protocol': 'tcp', 'message': 'Synthetic finding text #88'}, {'id': 89, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 43659, 'protocol': 'udp', 'message': 'Synthetic finding text #89'}, {'id': 90, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 7585, 'protocol': 'udp', 'message': 'Synthetic finding text #90'}, {'id': 91, 'type': 'alarm', 'ip_address': '10.42.0.0', 'hostname': 'synthetic-host-0000.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 45578, 'protocol': 'udp', 'message': 'Synthetic finding text #91'}, {'id': 92, 'type': 'alarm', 'ip_address': '10.42.0.1', 'hostname': 'synthetic-host-0001.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 59791, 'protocol': 'tcp', 'message': 'Synthetic finding text #92'}, {'id': 93, 'type': 'alarm', 'ip_address': '10.42.0.2', 'hostname': 'synthetic-host-0002.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 841, 'protocol': 'tcp', 'message': 'Synthetic finding text #93'}, {'id': 94, 'type': 'log', 'ip_address': '10.42.0.3', 'hostname': 'synthetic-host-0003.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 25287, 'protocol': 'tcp', 'message': 'Synthetic finding text #94'}, {'id': 95, 'type': 'alarm', 'ip_address': '10.42.0.4', 'hostname': 'synthetic-host-0004.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 32045, 'protocol': 'udp', 'message': 'Synthetic finding text #95'}, {'id': 96, 'type': 'log', 'ip_address': '10.42.0.5', 'hostname': 'synthetic-host-0005.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 6855, 'protocol': 'tcp', 'message': 'Synthetic finding text #96'}, {'id': 97, 'type': 'log', 'ip_address': '10.42.0.6', 'hostname': 'synthetic-host-0006.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 34423, 'protocol': 'tcp', 'message': 'Synthetic finding text #97'}, {'id': 98, 'type': 'log', 'ip_address': '10.42.0.7', 'hostname': 'synthetic-host-0007.lab', 'oid': '1.3.6.1.4.1.25623.1.0.103696', 'port': 48499, 'protocol': 'udp', 'message': 'Synthetic finding text #98'}, {'id': 99, 'type': 'log', 'ip_address': '10.42.0.8', 'hostname': 'synthetic-host-0008.lab', 'oid': '1.3.6.1.4.1.25623.1.0.112196', 'port': 37651, 'protocol': 'tcp', 'message': 'Synthetic finding text #99'}, {'id': 100, 'type': 'log', 'ip_address': '10.42.0.9', 'hostname': 'synthetic-host-0009.lab', 'oid': '1.3.6.1.4.1.25623.1.0.147696', 'port': 19383, 'protocol': 'udp', 'message': 'Synthetic finding text #100'}]}",
+        "summary_path": "results/qwencoder/20260517-150430/summary.json"
+      },
+      "scores": {
+        "correctness": 0.0,
+        "static_quality": 5.0,
+        "maintainability": 4.0,
+        "reviewer": null,
+        "total_without_reviewer": 9.0,
+        "total_with_reviewer": null
+      },
+      "static_checks": {
+        "cargo_check": {
+          "command": [
+            "cargo",
+            "check",
+            "--quiet"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": "warning: unused import: `rand_core::SeedableRng`\n --> src/main.rs:7:5\n  |\n7 | use rand_core::SeedableRng as _;\n  |     ^^^^^^^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: variant `Deleted` is never constructed\n  --> src/main.rs:21:5\n   |\n11 | enum ScanStatus {\n   |      ---------- variant in this enum\n...\n21 |     Deleted,\n   |     ^^^^^^^\n   |\n   = note: `ScanStatus` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\n"
+        },
+        "cargo_fmt_check": {
+          "command": [
+            "cargo",
+            "fmt",
+            "--check"
+          ],
+          "returncode": 1,
+          "passed": false,
+          "stdout": "Diff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:1:\n-use actix_web::{web, App, HttpResponse, HttpServer, middleware::Logger, Result, HttpRequest};\n+use actix_web::{middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer, Result};\n+use rand::{Rng, SeedableRng};\n+use rand_core::SeedableRng as _;\n use serde::{Deserialize, Serialize};\n use std::collections::HashMap;\n use std::env;\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:5:\n use std::sync::{Arc, Mutex};\n-use rand::{Rng, SeedableRng};\n-use rand_core::SeedableRng as _;\n \n // Scan status enum\n #[derive(Serialize, Clone, Debug)]\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:102:\n             .unwrap_or_else(|_| \"100\".to_string())\n             .parse()\n             .expect(\"MOCK_RESULT_COUNT must be a valid integer\");\n-        \n+\n         let findings_delay_polls = env::var(\"MOCK_FINDINGS_DELAY_POLLS\")\n             .unwrap_or_else(|_| \"0\".to_string())\n             .parse()\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:109:\n             .expect(\"MOCK_FINDINGS_DELAY_POLLS must be a valid integer\");\n-        \n+\n         let scan_complete_polls = env::var(\"MOCK_SCAN_COMPLETE_POLLS\")\n             .unwrap_or_else(|_| \"1\".to_string())\n             .parse()\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:114:\n             .expect(\"MOCK_SCAN_COMPLETE_POLLS must be a valid integer\");\n-        \n+\n         let host_count = env::var(\"MOCK_HOST_COUNT\")\n             .unwrap_or_else(|_| \"10\".to_string())\n             .parse()\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:119:\n             .expect(\"MOCK_HOST_COUNT must be a valid integer\");\n-        \n-        let seed = env::var(\"MOCK_SEED\")\n-            .unwrap_or_else(|_| \"openvas-mock-sanner\".to_string());\n \n+        let seed = env::var(\"MOCK_SEED\").unwrap_or_else(|_| \"openvas-mock-sanner\".to_string());\n+\n         Self {\n             scans: Mutex::new(HashMap::new()),\n             result_count,\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:133:\n \n     fn generate_results(&self, scan_id: &str) -> Vec<ResultItem> {\n         let mut results = Vec::with_capacity(self.result_count);\n-        \n+\n         // Create a deterministic seed based on scan_id and the configured seed\n         let mut seed_data = self.seed.clone();\n         seed_data.push_str(scan_id);\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:140:\n         let seed_bytes = seed_data.as_bytes();\n-        \n+\n         // Create a hash of the seed data to use as a numeric seed\n         let mut hash: u64 = 0;\n         for &byte in seed_bytes {\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:145:\n             hash = hash.wrapping_mul(31).wrapping_add(byte as u64);\n         }\n-        \n+\n         let mut rng = rand::rngs::StdRng::seed_from_u64(hash);\n-        \n+\n         let oids = [\n             \"1.3.6.1.4.1.25623.1.0.147696\",\n             \"1.3.6.1.4.1.25623.1.0.103696\",\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:153:\n             \"1.3.6.1.4.1.25623.1.0.112196\",\n         ];\n-        \n+\n         let protocols = [\"tcp\", \"udp\"];\n         let result_types = [\"alarm\", \"log\"];\n-        \n+\n         for i in 1..=self.result_count {\n             let host_index = (i - 1) % self.host_count;\n             let oid_index = (i - 1) % oids.len();\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:162:\n-            \n+\n             let result = ResultItem {\n                 id: i,\n                 result_type: result_types[rng.gen_range(0..result_types.len())].to_string(),\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:170:\n                 protocol: protocols[rng.gen_range(0..protocols.len())].to_string(),\n                 message: format!(\"Synthetic finding text #{}\", i),\n             };\n-            \n+\n             results.push(result);\n         }\n-        \n+\n         results\n     }\n }\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:184:\n     payload: web::Json<CreateScanRequest>,\n ) -> Result<HttpResponse> {\n     let mut scans = data.scans.lock().unwrap();\n-    \n+\n     // Generate a unique scan ID\n     let scan_id = format!(\"scan-{:04}\", scans.len() + 1);\n-    \n+\n     let scan = Scan {\n         id: scan_id.clone(),\n         status: ScanStatus::Created,\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:197:\n         }),\n         result_poll_count: 0,\n     };\n-    \n+\n     scans.insert(scan_id.clone(), scan);\n-    \n+\n     let response = CreateScanResponse { id: scan_id };\n     Ok(HttpResponse::Created().json(response))\n }\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:211:\n     payload: web::Json<ScanActionRequest>,\n ) -> Result<HttpResponse> {\n     let scan_id = path.into_inner();\n-    \n+\n     let mut scans = data.scans.lock().unwrap();\n-    \n+\n     if let Some(scan) = scans.get_mut(&scan_id) {\n         match payload.action.as_str() {\n             \"start\" => {\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:220:\n                 scan.status = ScanStatus::Running;\n-            },\n+            }\n             \"stop\" => {\n                 scan.status = ScanStatus::Stopped;\n-            },\n+            }\n             _ => {\n                 return Ok(HttpResponse::BadRequest().json(\"Invalid action\"));\n             }\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:228:\n         }\n-        \n+\n         let response = ScanActionResponse {\n             id: scan.id.clone(),\n             status: scan.status.clone(),\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:233:\n         };\n-        \n+\n         Ok(HttpResponse::Ok().json(response))\n     } else {\n         Ok(HttpResponse::NotFound().json(\"Scan not found\"))\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:244:\n     path: web::Path<String>,\n ) -> Result<HttpResponse> {\n     let scan_id = path.into_inner();\n-    \n+\n     let mut scans = data.scans.lock().unwrap();\n-    \n+\n     if let Some(scan) = scans.get_mut(&scan_id) {\n         // Check if we should transition to succeeded\n-        if matches!(scan.status, ScanStatus::Running) && scan.result_poll_count >= data.scan_complete_polls {\n+        if matches!(scan.status, ScanStatus::Running)\n+            && scan.result_poll_count >= data.scan_complete_polls\n+        {\n             scan.status = ScanStatus::Succeeded;\n         }\n-        \n+\n         let response = ScanStatusResponse {\n             id: scan.id.clone(),\n             status: scan.status.clone(),\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:259:\n         };\n-        \n+\n         Ok(HttpResponse::Ok().json(response))\n     } else {\n         Ok(HttpResponse::NotFound().json(\"Scan not found\"))\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:270:\n     path: web::Path<String>,\n ) -> Result<HttpResponse> {\n     let scan_id = path.into_inner();\n-    \n+\n     let mut scans = data.scans.lock().unwrap();\n-    \n+\n     if let Some(scan) = scans.get_mut(&scan_id) {\n         // Increment result poll count\n         scan.result_poll_count += 1;\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:279:\n-        \n+\n         // Check if we should transition to succeeded\n-        if matches!(scan.status, ScanStatus::Running) && scan.result_poll_count >= data.scan_complete_polls {\n+        if matches!(scan.status, ScanStatus::Running)\n+            && scan.result_poll_count >= data.scan_complete_polls\n+        {\n             scan.status = ScanStatus::Succeeded;\n         }\n-        \n+\n         let results = if scan.result_poll_count <= data.findings_delay_polls {\n             // Return empty results until delay threshold is crossed\n             vec![]\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:289:\n             // Return generated results\n             data.generate_results(&scan_id)\n         };\n-        \n+\n         let response = ResultsResponse {\n             scan_id: scan.id.clone(),\n             results,\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:296:\n         };\n-        \n+\n         Ok(HttpResponse::Ok().json(response))\n     } else {\n         Ok(HttpResponse::NotFound().json(\"Scan not found\"))\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:307:\n     path: web::Path<String>,\n ) -> Result<HttpResponse> {\n     let scan_id = path.into_inner();\n-    \n+\n     let mut scans = data.scans.lock().unwrap();\n-    \n+\n     if scans.contains_key(&scan_id) {\n         scans.remove(&scan_id);\n         Ok(HttpResponse::Ok().finish())\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:326:\n #[actix_web::main]\n async fn main() -> std::io::Result<()> {\n     // Check for required PORT environment variable\n-    let port = env::var(\"PORT\")\n-        .expect(\"PORT environment variable is required\");\n-    \n+    let port = env::var(\"PORT\").expect(\"PORT environment variable is required\");\n+\n     // Validate configuration at startup\n     if let Err(e) = env::var(\"MOCK_RESULT_COUNT\") {\n         eprintln!(\"Error: MOCK_RESULT_COUNT not set or invalid: {}\", e);\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:335:\n         std::process::exit(1);\n     }\n-    \n+\n     if let Err(e) = env::var(\"MOCK_FINDINGS_DELAY_POLLS\") {\n         eprintln!(\"Error: MOCK_FINDINGS_DELAY_POLLS not set or invalid: {}\", e);\n         std::process::exit(1);\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:341:\n     }\n-    \n+\n     if let Err(e) = env::var(\"MOCK_SCAN_COMPLETE_POLLS\") {\n         eprintln!(\"Error: MOCK_SCAN_COMPLETE_POLLS not set or invalid: {}\", e);\n         std::process::exit(1);\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:346:\n     }\n-    \n+\n     if let Err(e) = env::var(\"MOCK_HOST_COUNT\") {\n         eprintln!(\"Error: MOCK_HOST_COUNT not set or invalid: {}\", e);\n         std::process::exit(1);\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:351:\n     }\n-    \n+\n     let app_state = Arc::new(AppState::new());\n-    \n+\n     println!(\"Starting server on port {}\", port);\n-    \n+\n     HttpServer::new(move || {\n         App::new()\n             .app_data(web::Data::new(app_state.clone()))\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:364:\n                     .route(\"/{scan_id}\", web::post().to(scan_action))\n                     .route(\"/{scan_id}/status\", web::get().to(get_scan_status))\n                     .route(\"/{scan_id}/results\", web::get().to(get_scan_results))\n-                    .route(\"/{scan_id}\", web::delete().to(delete_scan))\n+                    .route(\"/{scan_id}\", web::delete().to(delete_scan)),\n             )\n             .default_service(web::route().to(not_found))\n     })\nDiff in /home/node/.openclaw/workspace-openvas-scan/openvas-mock-sanner/implementations/qwencoder/src/main.rs:372:\n     .run()\n     .await\n }\n+\n",
+          "stderr": ""
+        },
+        "cargo_clippy": {
+          "command": [
+            "cargo",
+            "clippy",
+            "--quiet",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "returncode": 101,
+          "passed": false,
+          "stdout": "",
+          "stderr": "error: unused import: `rand_core::SeedableRng`\n --> src/main.rs:7:5\n  |\n7 | use rand_core::SeedableRng as _;\n  |     ^^^^^^^^^^^^^^^^^^^^^^\n  |\n  = note: `-D unused-imports` implied by `-D warnings`\n  = help: to override `-D warnings` add `#[allow(unused_imports)]`\n\nerror: variant `Deleted` is never constructed\n  --> src/main.rs:21:5\n   |\n11 | enum ScanStatus {\n   |      ---------- variant in this enum\n...\n21 |     Deleted,\n   |     ^^^^^^^\n   |\n   = note: `ScanStatus` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis\n   = note: `-D dead-code` implied by `-D warnings`\n   = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`\n\nerror: could not compile `openvas-mock-server` (bin \"openvas-mock-server\") due to 2 previous errors\n"
+        }
+      },
+      "maintainability_metrics": {
+        "rust_loc": 288,
+        "longest_rust_file_lines": 374,
+        "dependency_count": 185,
+        "notes": [
+          "large Rust file: 374 lines",
+          "high dependency count: 185"
+        ]
+      },
+      "reviewer_findings": {
+        "review_path": null,
+        "counted_findings": [],
+        "severity_counts": {}
+      }
+    },
+    {
+      "implementation": "qwencoder-next",
+      "benchmark": {
+        "implementation": "qwencoder-next",
+        "timestamp": "20260517-141738",
+        "passed": true,
+        "checks": [
+          {
+            "name": "create_scan",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0001'}"
+          },
+          {
+            "name": "status_before_start",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'created'}"
+          },
+          {
+            "name": "start_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "results_delay_poll_1",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_delay_poll_2",
+            "passed": true,
+            "details": "status=200, body={'results': [], 'scan_id': 'scan-0001'}"
+          },
+          {
+            "name": "results_count",
+            "passed": true,
+            "details": "status=200, body_length=7"
+          },
+          {
+            "name": "result_ids_stable",
+            "passed": true,
+            "details": "ids=[1, 2, 3, 4, 5, 6, 7]"
+          },
+          {
+            "name": "result_oid_variety",
+            "passed": true,
+            "details": "oid_count=4"
+          },
+          {
+            "name": "results_deterministic",
+            "passed": true,
+            "details": "status=200"
+          },
+          {
+            "name": "status_poll_1",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_2",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'running'}"
+          },
+          {
+            "name": "status_poll_3",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0001', 'status': 'succeeded'}"
+          },
+          {
+            "name": "invalid_action",
+            "passed": true,
+            "details": "status=400, body={'error': 'unknown action'}"
+          },
+          {
+            "name": "create_scan_for_stop",
+            "passed": true,
+            "details": "status=201, body={'id': 'scan-0002'}"
+          },
+          {
+            "name": "start_scan_for_stop",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'running'}"
+          },
+          {
+            "name": "stop_scan",
+            "passed": true,
+            "details": "status=200, body={'id': 'scan-0002', 'status': 'stopped'}"
+          },
+          {
+            "name": "delete_scan",
+            "passed": true,
+            "details": "status=200, body={'status': 'deleted'}"
+          },
+          {
+            "name": "deleted_status_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_results_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "deleted_action_404",
+            "passed": true,
+            "details": "status=404, body={'error': 'scan not found'}"
+          },
+          {
+            "name": "invalid_config_fails_fast",
+            "passed": true,
+            "details": "return_code=2"
+          }
+        ],
+        "artifacts": {
+          "stdout": "results/qwencoder-next/20260517-141738/server.stdout.log",
+          "stderr": "results/qwencoder-next/20260517-141738/server.stderr.log"
+        },
+        "summary_path": "results/qwencoder-next/20260517-141738/summary.json"
+      },
+      "scores": {
+        "correctness": 50.0,
+        "static_quality": 10.0,
+        "maintainability": 6.0,
+        "reviewer": null,
+        "total_without_reviewer": 66.0,
+        "total_with_reviewer": null
+      },
+      "static_checks": {
+        "cargo_check": {
+          "command": [
+            "cargo",
+            "check",
+            "--quiet"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": "warning: field `payload` is never read\n  --> src/main.rs:32:5\n   |\n30 | struct Scan {\n   |        ---- field in this struct\n31 |     scan_id: String,\n32 |     payload: Value,\n   |     ^^^^^^^\n   |\n   = note: `Scan` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: function `respond_empty` is never used\n   --> src/main.rs:182:4\n    |\n182 | fn respond_empty(request: Request, status: u16) {\n    |    ^^^^^^^^^^^^^\n\n"
+        },
+        "cargo_fmt_check": {
+          "command": [
+            "cargo",
+            "fmt",
+            "--check"
+          ],
+          "returncode": 0,
+          "passed": true,
+          "stdout": "",
+          "stderr": ""
+        },
+        "cargo_clippy": {
+          "command": [
+            "cargo",
+            "clippy",
+            "--quiet",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "returncode": 101,
+          "passed": false,
+          "stdout": "",
+          "stderr": "error: field `payload` is never read\n  --> src/main.rs:32:5\n   |\n30 | struct Scan {\n   |        ---- field in this struct\n31 |     scan_id: String,\n32 |     payload: Value,\n   |     ^^^^^^^\n   |\n   = note: `Scan` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis\n   = note: `-D dead-code` implied by `-D warnings`\n   = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`\n\nerror: function `respond_empty` is never used\n   --> src/main.rs:182:4\n    |\n182 | fn respond_empty(request: Request, status: u16) {\n    |    ^^^^^^^^^^^^^\n\nerror: could not compile `qwencoder-next` (bin \"qwencoder-next\") due to 2 previous errors\n"
+        }
+      },
+      "maintainability_metrics": {
+        "rust_loc": 339,
+        "longest_rust_file_lines": 366,
+        "dependency_count": 16,
+        "notes": [
+          "large Rust file: 366 lines",
+          "moderate dependency count: 16"
+        ]
+      },
+      "reviewer_findings": {
+        "review_path": null,
+        "counted_findings": [],
+        "severity_counts": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "reviewer": "github-copilot",
+  "reviewed_at": "2026-05-17T15:00:00Z",
+  "findings": [
+    {
+      "title": "Result delay is ignored",
+      "severity": "high",
+      "category": "correctness",
+      "status": "confirmed",
+      "confirmed": true,
+      "reproducible": true,
+      "notes": "Server returns findings on first poll despite MOCK_FINDINGS_DELAY_POLLS=2"
+    },
+    {
+      "title": "Hostname numbering starts at 0000",
+      "severity": "low",
+      "category": "maintainability",
+      "status": "confirmed",
+      "confirmed": true,
+      "reproducible": true,
+      "notes": "Not contract-breaking, but inconsistent with other implementations."
+    }
+  ]
+}
