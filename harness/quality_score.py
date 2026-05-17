@@ -18,6 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 IMPLEMENTATIONS_DIR = REPO_ROOT / "implementations"
 RESULTS_DIR = REPO_ROOT / "results"
 DEFAULT_REVIEWS_DIR = REPO_ROOT / "reviews"
+MODEL_TIMES_PATH = RESULTS_DIR / "model-generation-times.json"
 
 REVIEW_WEIGHTS = {
     "critical": 10.0,
@@ -26,6 +27,19 @@ REVIEW_WEIGHTS = {
     "low": 1.0,
     "nit": 0.25,
 }
+
+
+def load_generation_times() -> dict[str, dict[str, Any]]:
+    if not MODEL_TIMES_PATH.exists():
+        return {}
+    payload = json.loads(MODEL_TIMES_PATH.read_text(encoding="utf-8"))
+    latest_by_impl: dict[str, dict[str, Any]] = {}
+    for run in payload.get("runs", []):
+        implementation = run.get("implementation")
+        if not implementation:
+            continue
+        latest_by_impl[str(implementation)] = run
+    return latest_by_impl
 
 
 def implementation_dirs(selected: str | None = None) -> list[Path]:
@@ -150,7 +164,7 @@ def reviewer_score(review_data: dict[str, Any] | None) -> tuple[float | None, li
     return max(20.0 - penalty, 0.0), normalized, severity_counts
 
 
-def score_implementation(implementation_dir: Path, reviews_root: Path) -> dict[str, Any]:
+def score_implementation(implementation_dir: Path, reviews_root: Path, generation_times: dict[str, dict[str, Any]]) -> dict[str, Any]:
     implementation = implementation_dir.name
     benchmark = latest_benchmark_summary(implementation)
     correctness_score = 50.0 if benchmark and benchmark.get("passed") else 0.0
@@ -173,10 +187,12 @@ def score_implementation(implementation_dir: Path, reviews_root: Path) -> dict[s
 
     total_without_reviewer = correctness_score + static_score + maintainability
     total_with_reviewer = None if reviewer is None else total_without_reviewer + reviewer
+    generation = generation_times.get(implementation)
 
     return {
         "implementation": implementation,
         "benchmark": benchmark,
+        "generation_time": generation,
         "scores": {
             "correctness": correctness_score,
             "static_quality": static_score,
@@ -205,20 +221,23 @@ def score_implementation(implementation_dir: Path, reviews_root: Path) -> dict[s
 
 
 def aggregate(selected: str | None, reviews_root: Path) -> dict[str, Any]:
-    items = [score_implementation(path, reviews_root) for path in implementation_dirs(selected)]
+    generation_times = load_generation_times()
+    items = [score_implementation(path, reviews_root, generation_times) for path in implementation_dirs(selected)]
     return {
         "reviews_root": str(reviews_root.relative_to(REPO_ROOT)) if reviews_root.is_absolute() and reviews_root.exists() and str(reviews_root).startswith(str(REPO_ROOT)) else str(reviews_root),
+        "generation_times_path": str(MODEL_TIMES_PATH.relative_to(REPO_ROOT)) if MODEL_TIMES_PATH.exists() else None,
         "implementations": items,
     }
 
 
 def render_text(report: dict[str, Any]) -> str:
-    lines = [f"Reviews root: {report['reviews_root']}", ""]
+    lines = [f"Reviews root: {report['reviews_root']}", f"Generation times source: {report.get('generation_times_path') or 'none'}", ""]
     for item in report["implementations"]:
         scores = item["scores"]
         reviewer = "n/a" if scores["reviewer"] is None else scores["reviewer"]
+        generation = item.get("generation_time") or {}
         lines.append(
-            f"- {item['implementation']}: correctness={scores['correctness']}, static={scores['static_quality']}, maintainability={scores['maintainability']}, reviewer={reviewer}, total(no-review)={scores['total_without_reviewer']}, total(with-review)={scores['total_with_reviewer']}"
+            f"- {item['implementation']}: correctness={scores['correctness']}, static={scores['static_quality']}, maintainability={scores['maintainability']}, reviewer={reviewer}, gen_time={generation.get('duration_human', '-')}, total(no-review)={scores['total_without_reviewer']}, total(with-review)={scores['total_with_reviewer']}"
         )
     return "\n".join(lines) + "\n"
 
@@ -228,16 +247,18 @@ def render_markdown(report: dict[str, Any]) -> str:
         "# Quality Scoreboard",
         "",
         f"- Reviews root: `{report['reviews_root']}`",
+        f"- Generation times source: `{report['generation_times_path']}`" if report.get("generation_times_path") else "- Generation times source: none",
         "",
-        "| Implementation | Correctness | Static | Maintainability | Reviewer | Total (no review) | Total (with review) |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Implementation | Correctness | Static | Maintainability | Reviewer | Generation time | Total (no review) | Total (with review) |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for item in report["implementations"]:
         scores = item["scores"]
         reviewer = "n/a" if scores["reviewer"] is None else scores["reviewer"]
         total_with_reviewer = "n/a" if scores["total_with_reviewer"] is None else scores["total_with_reviewer"]
+        generation = item.get("generation_time") or {}
         lines.append(
-            f"| {item['implementation']} | {scores['correctness']} | {scores['static_quality']} | {scores['maintainability']} | {reviewer} | {scores['total_without_reviewer']} | {total_with_reviewer} |"
+            f"| {item['implementation']} | {scores['correctness']} | {scores['static_quality']} | {scores['maintainability']} | {reviewer} | {generation.get('duration_human', '-')} | {scores['total_without_reviewer']} | {total_with_reviewer} |"
         )
     for item in report["implementations"]:
         metrics = item["maintainability_metrics"]
@@ -246,6 +267,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"## {item['implementation']}",
             "",
             f"- Latest benchmark: `{item['benchmark']['summary_path']}`" if item["benchmark"] else "- Latest benchmark: none",
+            f"- Generation time: {item['generation_time']['duration_human']} via `{item['generation_time']['model']}` ({item['generation_time']['status']})" if item.get("generation_time") else "- Generation time: none",
             f"- Rust LOC: {metrics['rust_loc']}",
             f"- Longest Rust file: {metrics['longest_rust_file_lines']} lines",
             f"- Dependency count: {metrics['dependency_count']}",

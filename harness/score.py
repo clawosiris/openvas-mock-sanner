@@ -10,6 +10,20 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = REPO_ROOT / "results"
+MODEL_TIMES_PATH = RESULTS_DIR / "model-generation-times.json"
+
+
+def load_generation_times() -> dict[str, dict[str, Any]]:
+    if not MODEL_TIMES_PATH.exists():
+        return {}
+    payload = json.loads(MODEL_TIMES_PATH.read_text(encoding="utf-8"))
+    latest_by_impl: dict[str, dict[str, Any]] = {}
+    for run in payload.get("runs", []):
+        implementation = run.get("implementation")
+        if not implementation:
+            continue
+        latest_by_impl[str(implementation)] = run
+    return latest_by_impl
 
 
 def load_summary_paths(implementation: str | None = None) -> list[Path]:
@@ -29,6 +43,7 @@ def safe_percent(numerator: int, denominator: int) -> float:
 
 def aggregate(paths: list[Path]) -> dict[str, Any]:
     runs_by_impl: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    generation_times = load_generation_times()
 
     for path in paths:
         with path.open("r", encoding="utf-8") as fh:
@@ -64,6 +79,7 @@ def aggregate(paths: list[Path]) -> dict[str, Any]:
                     )
 
         latest_run = runs[-1] if runs else None
+        generation = generation_times.get(implementation)
         implementations.append(
             {
                 "implementation": implementation,
@@ -76,6 +92,7 @@ def aggregate(paths: list[Path]) -> dict[str, Any]:
                 "latest_timestamp": latest_run.get("timestamp") if latest_run else None,
                 "latest_passed": latest_run.get("passed") if latest_run else None,
                 "latest_summary_path": latest_run.get("summary_path") if latest_run else None,
+                "generation_time": generation,
                 "failing_checks": [
                     {
                         "name": name,
@@ -94,6 +111,7 @@ def aggregate(paths: list[Path]) -> dict[str, Any]:
         "total_passed_runs": total_passed,
         "overall_pass_rate": safe_percent(total_passed, total_runs),
         "implementations": implementations,
+        "generation_times_path": str(MODEL_TIMES_PATH.relative_to(REPO_ROOT)) if MODEL_TIMES_PATH.exists() else None,
     }
 
 
@@ -106,16 +124,18 @@ def render_markdown(scoreboard: dict[str, Any]) -> str:
         f"- Total runs: {scoreboard['total_runs']}",
         f"- Passed runs: {scoreboard['total_passed_runs']}",
         f"- Overall pass rate: {scoreboard['overall_pass_rate']}%",
+        f"- Generation times source: `{scoreboard['generation_times_path']}`" if scoreboard.get("generation_times_path") else "- Generation times source: none",
         "",
         "## Per implementation",
         "",
-        "| Implementation | Runs | Passed | Failed | Pass rate | Avg passed checks | Latest run | Latest status |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |",
+        "| Implementation | Runs | Passed | Failed | Pass rate | Avg passed checks | Generation time | Latest run | Latest status |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
     ]
 
     for item in scoreboard["implementations"]:
+        generation = item.get("generation_time") or {}
         lines.append(
-            "| {implementation} | {runs} | {passed_runs} | {failed_runs} | {pass_rate}% | {avg_passed_checks}/{avg_checks} | {latest_timestamp} | {latest_passed} |".format(
+            "| {implementation} | {runs} | {passed_runs} | {failed_runs} | {pass_rate}% | {avg_passed_checks}/{avg_checks} | {generation_time} | {latest_timestamp} | {latest_passed} |".format(
                 implementation=item["implementation"],
                 runs=item["runs"],
                 passed_runs=item["passed_runs"],
@@ -123,6 +143,7 @@ def render_markdown(scoreboard: dict[str, Any]) -> str:
                 pass_rate=item["pass_rate"],
                 avg_passed_checks=item["avg_passed_checks"],
                 avg_checks=item["avg_checks"],
+                generation_time=generation.get("duration_human", "-"),
                 latest_timestamp=item["latest_timestamp"] or "-",
                 latest_passed="pass" if item["latest_passed"] else "fail",
             )
@@ -137,6 +158,9 @@ def render_markdown(scoreboard: dict[str, Any]) -> str:
             f"- Pass rate: {item['pass_rate']}%",
             f"- Latest run: `{item['latest_summary_path']}`" if item["latest_summary_path"] else "- Latest run: -",
         ])
+        generation = item.get("generation_time")
+        if generation:
+            lines.append(f"- Generation time: {generation.get('duration_human')} via `{generation.get('model')}` ({generation.get('status')})")
         if item["failing_checks"]:
             lines.append("- Failing checks seen:")
             for check in item["failing_checks"]:
@@ -154,12 +178,14 @@ def render_text(scoreboard: dict[str, Any]) -> str:
         f"Total runs: {scoreboard['total_runs']}",
         f"Passed runs: {scoreboard['total_passed_runs']}",
         f"Overall pass rate: {scoreboard['overall_pass_rate']}%",
+        f"Generation times source: {scoreboard.get('generation_times_path') or 'none'}",
         "",
     ]
     for item in scoreboard["implementations"]:
+        generation = item.get("generation_time") or {}
         lines.extend(
             [
-                f"- {item['implementation']}: {item['passed_runs']}/{item['runs']} passed ({item['pass_rate']}%), latest={item['latest_timestamp']} status={'pass' if item['latest_passed'] else 'fail'}",
+                f"- {item['implementation']}: {item['passed_runs']}/{item['runs']} passed ({item['pass_rate']}%), gen_time={generation.get('duration_human', '-')}, latest={item['latest_timestamp']} status={'pass' if item['latest_passed'] else 'fail'}",
             ]
         )
         if item["failing_checks"]:

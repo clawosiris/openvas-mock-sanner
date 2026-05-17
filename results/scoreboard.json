@@ -16,6 +16,7 @@
       "latest_timestamp": "20260517-130903",
       "latest_passed": true,
       "latest_summary_path": "results/baseline-rust/20260517-130903/summary.json",
+      "generation_time": null,
       "failing_checks": []
     },
     {
@@ -29,6 +30,13 @@
       "latest_timestamp": "20260517-132835",
       "latest_passed": true,
       "latest_summary_path": "results/deepseek4/20260517-132835/summary.json",
+      "generation_time": {
+        "implementation": "deepseek4",
+        "model": "ollama/deepseek-v4-pro",
+        "status": "completed",
+        "duration_seconds": 330,
+        "duration_human": "5m30s"
+      },
       "failing_checks": []
     },
     {
@@ -42,6 +50,13 @@
       "latest_timestamp": "20260517-132835",
       "latest_passed": true,
       "latest_summary_path": "results/deepseek4-flash/20260517-132835/summary.json",
+      "generation_time": {
+        "implementation": "deepseek4-flash",
+        "model": "ollama/deepseek-v4-flash",
+        "status": "completed",
+        "duration_seconds": 757,
+        "duration_human": "12m37s"
+      },
       "failing_checks": []
     },
     {
@@ -55,6 +70,13 @@
       "latest_timestamp": "20260517-132836",
       "latest_passed": true,
       "latest_summary_path": "results/gpt54/20260517-132836/summary.json",
+      "generation_time": {
+        "implementation": "gpt54",
+        "model": "gpt54",
+        "status": "completed",
+        "duration_seconds": 441,
+        "duration_human": "7m21s"
+      },
       "failing_checks": []
     },
     {
@@ -68,6 +90,13 @@
       "latest_timestamp": "20260517-132836",
       "latest_passed": true,
       "latest_summary_path": "results/gpt55/20260517-132836/summary.json",
+      "generation_time": {
+        "implementation": "gpt55",
+        "model": "gpt55",
+        "status": "completed",
+        "duration_seconds": 264,
+        "duration_human": "4m24s"
+      },
       "failing_checks": []
     },
     {
@@ -81,6 +110,13 @@
       "latest_timestamp": "20260517-150430",
       "latest_passed": false,
       "latest_summary_path": "results/qwencoder/20260517-150430/summary.json",
+      "generation_time": {
+        "implementation": "qwencoder",
+        "model": "ollama/qwen3-coder:480b-cloud",
+        "status": "completed_but_failed_harness",
+        "duration_seconds": 461,
+        "duration_human": "7m41s"
+      },
       "failing_checks": [
         {
           "name": "results_delay_poll_1",
@@ -105,7 +141,15 @@
       "latest_timestamp": "20260517-141738",
       "latest_passed": true,
       "latest_summary_path": "results/qwencoder-next/20260517-141738/summary.json",
+      "generation_time": {
+        "implementation": "qwencoder-next",
+        "model": "ollama/qwen3-coder-next",
+        "status": "completed",
+        "duration_seconds": 118,
+        "duration_human": "1m58s"
+      },
       "failing_checks": []
     }
-  ]
+  ],
+  "generation_times_path": "results/model-generation-times.json"
 }

@@ -17,6 +17,7 @@ The harness should:
 - `run_benchmark.py` — black-box acceptance runner
 - `score.py` — aggregate repeated benchmark runs into per-implementation score summaries
 - `quality_score.py` — score implementations on correctness, static quality, maintainability, and optional reviewer findings
+- `combined_leaderboard.py` — combine correctness, quality, and generation time into one leaderboard
 - `IMPLEMENTATION_CONTRACT.md` — required manifest contract for each implementation
 
 ## Suggested future files
@@ -44,6 +45,7 @@ Example:
 python3 harness/quality_score.py
 python3 harness/quality_score.py --implementation gpt55 --format markdown
 python3 harness/quality_score.py --reviews-root reviews --write-json results/quality-scoreboard.json --write-markdown results/quality-scoreboard.md
+python3 harness/combined_leaderboard.py --write-json results/combined-leaderboard.json --write-markdown results/combined-leaderboard.md
 ```
 
 The quality scorer combines:
