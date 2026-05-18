@@ -2,6 +2,8 @@
 
 - Generation times source: `results/model-generation-times.json`
 - Reviews root: `reviews`
+- Quality score = correctness + static quality + maintainability, with reviewer points added only when a human review exists.
+- In this table, "no review" means "no human review".
 
 | Rank | Implementation | Latest benchmark | Pass rate | Quality (no review) | Quality (with review) | Generation time |
 | ---: | --- | --- | ---: | ---: | ---: | ---: |

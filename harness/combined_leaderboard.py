@@ -58,6 +58,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"- Generation times source: `{report['benchmark_generation_times_path']}`" if report.get("benchmark_generation_times_path") else "- Generation times source: none",
         f"- Reviews root: `{report['reviews_root']}`",
+        "- Quality score = correctness + static quality + maintainability, with reviewer points added only when a human review exists.",
+        "- In this table, \"no review\" means \"no human review\".",
         "",
         "| Rank | Implementation | Latest benchmark | Pass rate | Quality (no review) | Quality (with review) | Generation time |",
         "| ---: | --- | --- | ---: | ---: | ---: | ---: |",
