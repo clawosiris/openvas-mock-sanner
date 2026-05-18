@@ -2,6 +2,9 @@
 
 - Reviews root: `reviews`
 - Generation times source: `results/model-generation-times.json`
+- Quality score = correctness (latest benchmark pass = 50) + static quality (cargo check 5 + fmt 5 + clippy 10) + maintainability (starts at 10, then loses points for size/dependency penalties).
+- Reviewer is an optional human-review component that starts at 20 and loses weighted points for confirmed findings.
+- In this table, "no review" means "no human review".
 
 | Implementation | Correctness | Static | Maintainability | Reviewer | Generation time | Total (no review) | Total (with review) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
