@@ -34,6 +34,32 @@ Example scenario selection:
 MOCK_SCENARIO=success-large-report MOCK_PORT=8081 python3 -m openvas_mock_scanner
 ```
 
+## Container
+
+Build the local container image:
+
+```sh
+docker build -t openvas-mock-scanner:local .
+```
+
+Run it as a drop-in mock scanner service:
+
+```sh
+docker run --rm -p 8080:8080 \
+  -e MOCK_SCENARIO=success-basic \
+  openvas-mock-scanner:local
+```
+
+The container listens on `0.0.0.0:8080` by default and exposes `GET /health`
+as its healthcheck endpoint. All runtime environment variables listed above are
+supported in the container.
+
+CI publishes successful `main`, `devel`, and `v*` tag builds to:
+
+```text
+ghcr.io/clawosiris/openvas-mock-scanner
+```
+
 Supported scenarios:
 
 `success-basic`, `success-large-report`, `empty-report`, `delayed-findings`,

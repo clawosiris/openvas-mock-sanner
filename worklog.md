@@ -15,6 +15,9 @@
   - Added unit, HTTP contract, scenario acceptance, and determinism tests.
   - Updated `README.md` with run/test instructions and curl examples.
   - Rebased on latest `origin/devel`; branch was already up to date.
+  - Added AGPL-3.0-or-later licensing.
+  - Added Dockerfile, .dockerignore, GitHub Actions CI, container smoke test,
+    and GHCR publishing for `main`, `devel`, and `v*` tags.
 - Failures/workarounds:
   - The command sandbox could not start because `bubblewrap` is unavailable, so
     repository commands were run with explicit elevated approval.
@@ -29,6 +32,11 @@
     9.333s.
   - Post-rebase run: `python3 -m unittest discover` passed: 22 tests in
     9.271s.
+  - CI/container update run: `python3 -m unittest discover` passed: 22 tests
+    in 9.258s.
+  - Local Docker build could not be run because this runtime does not provide a
+    `docker` executable; GitHub Actions will run the container build and smoke
+    test after push.
 - PR URL:
   - PR creation blocked in this environment:
     - GitHub connector returned `403 Resource not accessible by integration`.
