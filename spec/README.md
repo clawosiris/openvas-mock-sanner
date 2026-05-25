@@ -6,6 +6,8 @@ Current documents:
 
 - `mock-server.md` — contract for the OpenVAS Scanner REST API mock server benchmark
 - `compatibility-mock-server.md` — stricter mock scanner contract for automated manager compatibility tests
+- `implementation-spec.md` — concrete implementation contract for the compatibility mock scanner service
+- `test-plan.md` — verification plan and readiness gate for the compatibility mock scanner
 
 Rules:
 
