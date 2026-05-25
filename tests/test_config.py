@@ -31,6 +31,14 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.failure_at, FailureAt("results", 2))
         self.assertEqual(config.result_count, 8)
 
+    def test_openvasd_listening_alias(self):
+        config = load_config({"LISTENING": "0.0.0.0:80"})
+        self.assertEqual(config.host, "0.0.0.0")
+        self.assertEqual(config.port, 80)
+
+        override = load_config({"LISTENING": "0.0.0.0:80", "MOCK_PORT": "8080"})
+        self.assertEqual(override.port, 8080)
+
     def test_invalid_values_fail(self):
         cases = [
             {"MOCK_PORT": "0"},
@@ -39,6 +47,7 @@ class ConfigTests(unittest.TestCase):
             {"MOCK_LATENCY_MS": "-1"},
             {"MOCK_SCENARIO": "unknown"},
             {"MOCK_FAILURE_AT": "bogus"},
+            {"LISTENING": "0.0.0.0"},
         ]
         for env in cases:
             with self.subTest(env=env):

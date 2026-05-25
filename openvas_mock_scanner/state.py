@@ -10,7 +10,7 @@ from .results import generate_results
 
 
 TERMINAL_STATUSES = {"succeeded", "stopped", "failed", "error"}
-ACTIVE_STATUSES = {"created", "queued", "stored", "requested", "running"}
+ACTIVE_STATUSES = {"stored", "requested", "running"}
 
 
 @dataclass
@@ -46,12 +46,16 @@ class AppState:
         self.scans: dict[str, Scan] = {}
 
     def create_scan(self, payload: dict[str, Any]) -> Scan:
-        scan_id = f"scan-{self._next_scan:04d}"
+        requested_id = payload.get("scan_id")
+        scan_id = requested_id if isinstance(requested_id, str) and requested_id else f"scan-{self._next_scan:04d}"
+        if scan_id in self.scans and not self.scans[scan_id].deleted:
+            raise ValueError("scan id already exists")
         self._next_scan += 1
         scan = Scan(
             id=scan_id,
             payload=payload,
             scenario=self.config.scenario,
+            status="stored",
             results=generate_results(self.config, scan_id),
         )
         self.scans[scan_id] = scan
@@ -66,7 +70,7 @@ class AppState:
 
 def start_scan(scan: Scan) -> tuple[int, dict[str, object] | None]:
     if scan.status == "running":
-        return 409, error("scan_already_running", "scan is already running")
+        return 406, error("scan_already_running", "scan is already running")
     scan.start_count += 1
     if scan.status in {"failed", "stopped", "succeeded", "error"}:
         scan.status = "running"
@@ -78,7 +82,7 @@ def start_scan(scan: Scan) -> tuple[int, dict[str, object] | None]:
 
 def stop_scan(scan: Scan) -> tuple[int, dict[str, object] | None]:
     if scan.status in TERMINAL_STATUSES:
-        return 409, error("scan_terminal", "terminal scans cannot be stopped")
+        return 406, error("scan_terminal", "terminal scans cannot be stopped")
     scan.stop_count += 1
     scan.status = "stopped"
     return 204, None
@@ -92,8 +96,8 @@ def status_for(scan: Scan) -> dict[str, object]:
     poll counts instead of wall-clock time to keep tests stable and fast.
     """
 
-    if scan.status == "created":
-        return {"id": scan.id, "status": "created", "progress": 0, "poll_count": scan.status_poll_count}
+    if scan.status == "stored":
+        return _status(scan, 0)
 
     scan.status_poll_count += 1
     scenario = scan.scenario
@@ -120,7 +124,7 @@ def status_for(scan: Scan) -> dict[str, object]:
 def delete_scan(scan: Scan) -> tuple[int, dict[str, object] | None]:
     scan.delete_count += 1
     if scan.scenario == "delete-refused" and scan.status not in TERMINAL_STATUSES:
-        return 409, error("delete_refused", "scanner refused to delete an active scan")
+        return 406, error("delete_refused", "scanner refused to delete an active scan")
     scan.deleted = True
     return 204, None
 
@@ -161,9 +165,21 @@ def error(code: str, message: str) -> dict[str, object]:
 def _status(scan: Scan, progress: int, **extra: object) -> dict[str, object]:
     body: dict[str, object] = {
         "id": scan.id,
+        "scan_id": scan.id,
         "status": scan.status,
         "progress": progress,
         "poll_count": scan.status_poll_count,
+        "start_time": 0 if scan.start_count == 0 else 1767225600,
+        "end_time": 1767225600 if scan.status in TERMINAL_STATUSES else 0,
+        "host_info": {
+            "all": 1,
+            "excluded": 0,
+            "dead": 0,
+            "alive": 1,
+            "queued": 0 if scan.status in TERMINAL_STATUSES else 1,
+            "finished": 1 if scan.status in TERMINAL_STATUSES else 0,
+            "scanning": [],
+        },
     }
     body.update(extra)
     return body

@@ -55,6 +55,8 @@ class HttpContractTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(headers["Content-Type"], "application/json")
             self.assertEqual(body["status"], "ok")
+            self.assertEqual(service.request("GET", "/health/alive")[0], 200)
+            self.assertEqual(service.request("HEAD", "/scans")[0], 204)
 
             self.assertEqual(service.request("GET", "/missing")[0], 404)
             status, body = service.raw_request("POST", "/scans", "{")
@@ -69,21 +71,29 @@ class HttpContractTests(unittest.TestCase):
 
             prefs = service.request("GET", "/preferences")[2]["preferences"]
             self.assertTrue(all({"id", "name", "type", "default", "required"}.issubset(p) for p in prefs))
+            openvasd_prefs = service.request("GET", "/scans/preferences")[2]
+            self.assertIsInstance(openvasd_prefs, list)
+            self.assertTrue(all({"id", "name", "type", "default"}.issubset(p) for p in openvasd_prefs))
+            self.assertGreater(len(service.request("GET", "/vts")[2]), 0)
 
-            status, _, created = service.request("POST", "/scans", {"target": "example.test"})
+            status, _, created = service.request("POST", "/scans", {"scan_id": "report-uuid", "target": {"hosts": ["example.test"], "ports": []}, "vts": []})
             self.assertEqual(status, 201)
-            self.assertRegex(created["id"], r"^scan-[0-9]{4}$")
-            scan_id = created["id"]
-            self.assertEqual(service.request("POST", f"/scans/{scan_id}/start")[0], 204)
+            self.assertEqual(created, "report-uuid")
+            scan_id = created
+            self.assertEqual(service.request("GET", f"/scans/{scan_id}")[2]["scan_id"], scan_id)
+            self.assertEqual(service.request("POST", f"/scans/{scan_id}", {"action": "start"})[0], 204)
             self.assertEqual(service.request("GET", f"/scans/{scan_id}/status")[0], 200)
-            self.assertEqual(service.request("GET", f"/scans/{scan_id}/results?offset=0&limit=2")[0], 200)
+            status, _, results = service.request("GET", f"/scans/{scan_id}/results?range=0-1")
+            self.assertEqual(status, 200)
+            self.assertIn("items", results)
+            self.assertEqual(service.request("GET", f"/scans/{scan_id}/results/0")[0], 200)
             self.assertEqual(service.request("DELETE", f"/scans/{scan_id}")[0], 204)
             self.assertEqual(service.request("GET", f"/scans/{scan_id}/status")[0], 404)
             self.assertEqual(service.request("POST", "/scans/nope/start")[0], 404)
 
     def test_invalid_paging(self):
         with Service() as service:
-            scan_id = service.request("POST", "/scans", {})[2]["id"]
+            scan_id = service.request("POST", "/scans", {})[2]
             status, _, body = service.request("GET", f"/scans/{scan_id}/results?offset=-1&limit=1")
             self.assertEqual(status, 400)
             self.assertEqual(body["error"]["code"], "invalid_paging")

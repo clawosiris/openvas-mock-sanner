@@ -10,8 +10,8 @@ def collect(env):
             "capabilities": service.request("GET", "/capabilities")[2],
             "preferences": service.request("GET", "/preferences")[2],
         }
-        scan_id = service.request("POST", "/scans", {"target": "example.test"})[2]["id"]
-        service.request("POST", f"/scans/{scan_id}/start")
+        scan_id = service.request("POST", "/scans", {"target": {"hosts": ["example.test"], "ports": []}, "vts": []})[2]
+        service.request("POST", f"/scans/{scan_id}", {"action": "start"})
         statuses = []
         for _ in range(3):
             statuses.append(service.request("GET", f"/scans/{scan_id}/status")[2])

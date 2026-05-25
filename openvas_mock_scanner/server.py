@@ -13,9 +13,9 @@ from .state import AppState, delete_scan, error, page_results, start_scan, statu
 
 
 PREFERENCES = [
-    {"id": "port_range", "name": "Port range", "type": "string", "default": "T:1-1024", "required": True},
-    {"id": "alive_test", "name": "Alive test", "type": "choice", "default": "ICMP, TCP-ACK", "required": False},
-    {"id": "max_checks", "name": "Maximum checks", "type": "integer", "default": "4", "required": False},
+    {"id": "port_range", "name": "Port range", "type": "string", "description": "Ports to scan", "default": "T:1-1024", "required": True},
+    {"id": "alive_test", "name": "Alive test", "type": "choice", "description": "Host alive detection", "default": "ICMP, TCP-ACK", "values": "ICMP, TCP-SYN, TCP-ACK, ARP, Consider Alive", "required": False},
+    {"id": "max_checks", "name": "Maximum checks", "type": "integer", "description": "Maximum parallel checks", "default": "4", "required": False},
 ]
 
 
@@ -28,6 +28,13 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
         def log_message(self, fmt: str, *args: object) -> None:
             return
 
+        def do_HEAD(self) -> None:
+            parsed = urlparse(self.path)
+            if parsed.path in {"/health", "/scans", "/vts", "/notus"}:
+                self._headers(204 if parsed.path == "/scans" else 200)
+                return
+            self._headers(404)
+
         def do_GET(self) -> None:
             self._latency()
             parsed = urlparse(self.path)
@@ -35,17 +42,35 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
             if parsed.path == "/health":
                 self._json(200, {"status": "ok", "scenario": app_state.config.scenario})
                 return
+            if parsed.path in {"/health/alive", "/health/ready", "/health/started"}:
+                self._json(200, {"status": "ok"})
+                return
             if parsed.path == "/capabilities":
                 self._json(200, capabilities())
                 return
             if parsed.path == "/preferences":
                 self._json(200, {"preferences": PREFERENCES})
                 return
+            if parsed.path == "/scans/preferences":
+                self._json(200, _openvasd_preferences())
+                return
+            if parsed.path == "/vts":
+                self._json(200, _vts())
+                return
+            if parsed.path == "/notus":
+                self._json(200, [])
+                return
+            if len(parts) == 2 and parts[0] == "scans":
+                self._scan(parts[1])
+                return
             if len(parts) == 3 and parts[0] == "scans" and parts[2] == "status":
                 self._scan_status(parts[1])
                 return
             if len(parts) == 3 and parts[0] == "scans" and parts[2] == "results":
-                self._scan_results(parts[1], parse_qs(parsed.query))
+                self._scan_results(parts[1], parsed.query)
+                return
+            if len(parts) == 4 and parts[0] == "scans" and parts[2] == "results":
+                self._scan_result(parts[1], parts[3])
                 return
             self._json(404, error("not_found", "route does not exist"))
 
@@ -55,6 +80,9 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
             parts = _parts(parsed.path)
             if parsed.path == "/scans":
                 self._create_scan()
+                return
+            if len(parts) == 2 and parts[0] == "scans":
+                self._openvasd_scan_action(parts[1])
                 return
             if len(parts) == 3 and parts[0] == "scans" and parts[2] == "start":
                 self._scan_action(parts[1], "start")
@@ -83,8 +111,30 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
             if not isinstance(payload, dict):
                 self._json(400, error("invalid_request", "scan create payload must be a JSON object"))
                 return
-            scan = app_state.create_scan(payload)
-            self._json(201, {"id": scan.id})
+            try:
+                scan = app_state.create_scan(payload)
+            except ValueError:
+                self._json(403, error("scan_id_conflict", "scan id already exists"))
+                return
+            self._json(201, scan.id)
+
+        def _scan(self, scan_id: str) -> None:
+            scan = app_state.get_scan(scan_id)
+            if scan is None:
+                self._json(404, error("scan_not_found", "scan id does not exist"))
+                return
+            body = dict(scan.payload)
+            body["scan_id"] = scan.id
+            self._json(200, body)
+
+        def _openvasd_scan_action(self, scan_id: str) -> None:
+            payload = self._read_json()
+            if payload is None:
+                return
+            if not isinstance(payload, dict) or payload.get("action") not in {"start", "stop"}:
+                self._json(400, error("invalid_action", "action must be start or stop"))
+                return
+            self._scan_action(scan_id, str(payload["action"]))
 
         def _scan_action(self, scan_id: str, action: str) -> None:
             scan = app_state.get_scan(scan_id)
@@ -107,7 +157,7 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 return
             self._json(200, status_for(scan))
 
-        def _scan_results(self, scan_id: str, query: dict[str, list[str]]) -> None:
+        def _scan_results(self, scan_id: str, raw_query: str) -> None:
             scan = app_state.get_scan(scan_id)
             if scan is None:
                 self._json(404, error("scan_not_found", "scan id does not exist"))
@@ -123,14 +173,27 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 return
             if scan.scenario == "malformed-results" and _matches_defaultable_failure(app_state.config.failure_at, request_number):
                 scan.results_request_count += 1
-                self._json(200, {"scan_id": scan.id, "results": "schema-invalid"})
+                self._json(200, {"items": "schema-invalid", "scan_id": scan.id, "results": "schema-invalid"})
                 return
-            parsed = _parse_paging(query, app_state.config.page_size)
+            parsed = _parse_paging(raw_query, app_state.config.page_size)
             if isinstance(parsed, dict):
                 self._json(400, parsed)
                 return
             offset, limit = parsed
-            self._json(200, page_results(scan, offset, limit))
+            page = page_results(scan, offset, limit)
+            page["items"] = [_openvasd_result(row) for row in page["results"]]
+            self._json(200, page)
+
+        def _scan_result(self, scan_id: str, result_id: str) -> None:
+            scan = app_state.get_scan(scan_id)
+            if scan is None:
+                self._json(404, error("scan_not_found", "scan id does not exist"))
+                return
+            for row in scan.results:
+                if str(row["ordinal"] - 1) == result_id or str(row["id"]) == result_id:
+                    self._json(200, _openvasd_result(row))
+                    return
+            self._json(404, error("result_not_found", "result id does not exist"))
 
         def _delete_scan(self, scan_id: str) -> None:
             scan = app_state.get_scan(scan_id)
@@ -152,14 +215,26 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 self._json(400, error("invalid_json", "request body is not valid JSON"))
                 return None
 
-        def _json(self, status: int, body: dict[str, object] | None) -> None:
+        def _headers(self, status: int, content_length: int = 0) -> None:
+            self.send_response(status)
+            self.send_header("api-version", "0.1")
+            self.send_header("feed-version", "mock")
+            self.send_header("authentication", "none")
+            if content_length:
+                self.send_header("Content-Length", str(content_length))
+            self.end_headers()
+
+        def _json(self, status: int, body: object | None) -> None:
             """Write compact deterministic JSON for stable golden comparisons."""
 
-            self.send_response(status)
             if body is None or status == HTTPStatus.NO_CONTENT:
-                self.end_headers()
+                self._headers(status)
                 return
             data = json.dumps(body, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            self.send_response(status)
+            self.send_header("api-version", "0.1")
+            self.send_header("feed-version", "mock")
+            self.send_header("authentication", "none")
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
@@ -203,10 +278,23 @@ def _parts(path: str) -> list[str]:
     return [part for part in path.split("/") if part]
 
 
-def _parse_paging(query: dict[str, list[str]], default_limit: int) -> tuple[int, int] | dict[str, object]:
+def _parse_paging(raw_query: str, default_limit: int) -> tuple[int, int] | dict[str, object]:
     """Normalize offset/limit and page/page_size query forms."""
 
+    query = parse_qs(raw_query)
     try:
+        if raw_query.startswith("range") or "range" in query:
+            # openvasd uses `range=0-12`. libgvm currently emits `range0-12`
+            # in one path, so accept both spellings for manager compatibility.
+            range_raw = query.get("range", [raw_query.removeprefix("range")])[0]
+            start_raw, sep, end_raw = range_raw.partition("-")
+            offset = int(start_raw)
+            if sep:
+                end = int(end_raw)
+                if end < offset:
+                    raise ValueError
+                return offset, end - offset + 1
+            return offset, default_limit
         if "page" in query or "page_size" in query:
             page = int(query.get("page", ["1"])[0])
             page_size = int(query.get("page_size", [str(default_limit)])[0])
@@ -220,6 +308,28 @@ def _parse_paging(query: dict[str, list[str]], default_limit: int) -> tuple[int,
     except ValueError:
         return error("invalid_paging", "offset/page must be non-negative and limit/page_size must be positive")
     return offset, limit
+
+
+def _openvasd_preferences() -> list[dict[str, object]]:
+    return [{key: value for key, value in pref.items() if key != "required"} for pref in PREFERENCES]
+
+
+def _vts() -> list[str]:
+    return [f"1.3.6.1.4.1.25623.1.0.{100001 + index}" for index in range(10)]
+
+
+def _openvasd_result(row: dict[str, object]) -> dict[str, object]:
+    message = row.get("description", "")
+    return {
+        "id": int(row["ordinal"]) - 1,
+        "type": row["type"],
+        "ip_address": row["ip_address"],
+        "hostname": row["hostname"],
+        "oid": row["oid"],
+        "port": row["port"],
+        "protocol": row["protocol"],
+        "message": message,
+    }
 
 
 def _should_fail(failure_at: FailureAt | None, point: str, count: int) -> bool:

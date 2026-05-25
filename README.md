@@ -1,12 +1,12 @@
 # OpenVAS Mock Scanner
 
-A deterministic HTTP JSON compatibility mock for OpenVAS/Greenbone manager
-integration tests. Compatibility mode is the default behavior on `devel`.
+A deterministic HTTP JSON compatibility mock for OpenVAS/openvasd and
+Greenbone manager integration tests.
 
-The mock is intended to stand in for an OpenVAS scanner container in manager
-integration tests. It does not execute vulnerability tests; it provides stable
-scanner lifecycle behavior, result payloads, paging, preferences, and failure
-scenarios that gvmd-compatible clients can use as a repeatable fixture.
+The mock is intended to stand in for the HTTP openvasd scanner surface in
+manager integration tests. It does not execute vulnerability tests; it provides
+stable scanner lifecycle behavior, result payloads, paging, preferences, and
+failure scenarios that gvmd-compatible clients can use as a repeatable fixture.
 
 ## Documentation
 
@@ -33,6 +33,7 @@ Runtime configuration is read from environment variables:
 | --- | --- |
 | `MOCK_HOST` | `127.0.0.1` |
 | `MOCK_PORT` | `8080` |
+| `LISTENING` | unset; openvasd-compatible `host:port` alias |
 | `MOCK_SCENARIO` | `success-basic` |
 | `MOCK_PAGE_SIZE` | `100` |
 | `MOCK_FAILURE_AT` | unset |
@@ -64,9 +65,10 @@ docker run --rm -p 8080:8080 \
   openvas-mock-scanner:local
 ```
 
-The container listens on `0.0.0.0:8080` by default and exposes `GET /health`
-as its healthcheck endpoint. All runtime environment variables listed above are
-supported in the container.
+The container listens on `0.0.0.0:80` by default via the openvasd-compatible
+`LISTENING=0.0.0.0:80` variable and exposes `GET /health/alive` as its
+healthcheck endpoint. `MOCK_HOST` and `MOCK_PORT` can override the bind address
+for local test runs.
 
 CI publishes successful `main`, `devel`, and `v*` tag builds to:
 
@@ -100,7 +102,7 @@ services.
 ```sh
 curl -s http://127.0.0.1:8080/health
 curl -s http://127.0.0.1:8080/capabilities
-curl -s http://127.0.0.1:8080/preferences
+curl -s http://127.0.0.1:8080/scans/preferences
 ```
 
 Create and start a scan:
@@ -108,23 +110,26 @@ Create and start a scan:
 ```sh
 curl -s -X POST http://127.0.0.1:8080/scans \
   -H 'Content-Type: application/json' \
-  -d '{"target":"192.0.2.10","profile":"compat"}'
+  -d '{"scan_id":"scan-0001","target":{"hosts":["192.0.2.10"],"ports":[]},"vts":[]}'
 
-curl -i -X POST http://127.0.0.1:8080/scans/scan-0001/start
+curl -i -X POST http://127.0.0.1:8080/scans/scan-0001 \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"start"}'
 ```
 
 Check status and page through results:
 
 ```sh
 curl -s http://127.0.0.1:8080/scans/scan-0001/status
-curl -s 'http://127.0.0.1:8080/scans/scan-0001/results?offset=0&limit=5'
-curl -s 'http://127.0.0.1:8080/scans/scan-0001/results?page=2&page_size=5'
+curl -s 'http://127.0.0.1:8080/scans/scan-0001/results?range=0-4'
 ```
 
 Stop or delete a scan:
 
 ```sh
-curl -i -X POST http://127.0.0.1:8080/scans/scan-0001/stop
+curl -i -X POST http://127.0.0.1:8080/scans/scan-0001 \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"stop"}'
 curl -i -X DELETE http://127.0.0.1:8080/scans/scan-0001
 ```
 

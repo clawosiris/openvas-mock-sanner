@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import os
+import re
 from typing import Mapping
 
 
@@ -71,10 +72,11 @@ def load_config(env: Mapping[str, str] | None = None) -> Config:
     if scenario not in SCENARIOS:
         raise ConfigError(f"invalid MOCK_SCENARIO: {scenario!r}")
 
+    listening_host, listening_port = _parse_listening(source.get("LISTENING"))
     defaults = _scenario_defaults(scenario)
     return Config(
-        host=source.get("MOCK_HOST", "127.0.0.1"),
-        port=_parse_int(source, "MOCK_PORT", 8080, minimum=1, maximum=65535),
+        host=source.get("MOCK_HOST", listening_host or "127.0.0.1"),
+        port=_parse_int(source, "MOCK_PORT", listening_port or 8080, minimum=1, maximum=65535),
         scenario=scenario,
         page_size=_parse_int(source, "MOCK_PAGE_SIZE", 100, minimum=1),
         failure_at=_parse_failure_at(source.get("MOCK_FAILURE_AT")),
@@ -94,6 +96,29 @@ def _scenario_defaults(scenario: str) -> dict[str, int]:
     if scenario == "empty-report":
         return {"result_count": 0, "host_count": 1}
     return {"result_count": 12, "host_count": 3}
+
+
+def _parse_listening(raw: str | None) -> tuple[str | None, int | None]:
+    """Parse openvasd's LISTENING host:port env alias.
+
+    Greenbone's openvas-scanner container commonly sets
+    `LISTENING=0.0.0.0:80` for openvasd. The mock accepts the same variable so
+    it can be swapped into compose files without renaming bind settings.
+    """
+
+    if not raw:
+        return None, None
+    match = re.fullmatch(r"(.+):([0-9]+)", raw.strip())
+    if not match:
+        raise ConfigError("invalid LISTENING: must be host:port")
+    host, port_raw = match.groups()
+    try:
+        port = int(port_raw)
+    except ValueError as exc:
+        raise ConfigError("invalid LISTENING: port must be an integer") from exc
+    if port < 1 or port > 65535:
+        raise ConfigError("invalid LISTENING: port must be 1..65535")
+    return host, port
 
 
 def _parse_int(

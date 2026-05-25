@@ -29,8 +29,8 @@ REQUIRED_FIELDS = {
 
 class ScenarioTests(unittest.TestCase):
     def create_started(self, service):
-        scan_id = service.request("POST", "/scans", {"target": "example.test"})[2]["id"]
-        self.assertEqual(service.request("POST", f"/scans/{scan_id}/start")[0], 204)
+        scan_id = service.request("POST", "/scans", {"target": {"hosts": ["example.test"], "ports": []}, "vts": []})[2]
+        self.assertEqual(service.request("POST", f"/scans/{scan_id}", {"action": "start"})[0], 204)
         return scan_id
 
     def test_success_basic(self):
@@ -84,7 +84,7 @@ class ScenarioTests(unittest.TestCase):
     def test_stop_running(self):
         with Service({"MOCK_SCENARIO": "stop-running"}) as service:
             scan_id = self.create_started(service)
-            self.assertEqual(service.request("POST", f"/scans/{scan_id}/stop")[0], 204)
+            self.assertEqual(service.request("POST", f"/scans/{scan_id}", {"action": "stop"})[0], 204)
             self.assertEqual(service.request("GET", f"/scans/{scan_id}/status")[2]["status"], "stopped")
             self.assertEqual(service.request("DELETE", f"/scans/{scan_id}")[0], 204)
 
@@ -115,7 +115,7 @@ class ScenarioTests(unittest.TestCase):
         with Service({"MOCK_SCENARIO": "delete-refused"}) as service:
             scan_id = self.create_started(service)
             status, _, body = service.request("DELETE", f"/scans/{scan_id}")
-            self.assertEqual(status, 409)
+            self.assertEqual(status, 406)
             self.assertEqual(body["error"]["code"], "delete_refused")
             self.assertEqual(service.request("GET", f"/scans/{scan_id}/status")[0], 200)
             service.request("GET", f"/scans/{scan_id}/status")
