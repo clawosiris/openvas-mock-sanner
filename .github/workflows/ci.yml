@@ -67,20 +67,56 @@ jobs:
       - name: Smoke test image
         run: |
           set -euo pipefail
-          cid="$(docker run -d -p 18080:8080 \
+          cid="$(docker run -d -p 18080:80 \
             -e MOCK_SCENARIO=success-basic \
+            -e LISTENING=0.0.0.0:80 \
             openvas-mock-scanner:ci)"
           trap 'docker rm -f "$cid"' EXIT
 
+          ready=0
           for _ in $(seq 1 30); do
-            if python -c "import json, urllib.request; data=json.load(urllib.request.urlopen('http://127.0.0.1:18080/health', timeout=2)); raise SystemExit(0 if data.get('status') == 'ok' else 1)"; then
-              exit 0
+            if python -c "import json, urllib.request; data=json.load(urllib.request.urlopen('http://127.0.0.1:18080/health/alive', timeout=2)); raise SystemExit(0 if data.get('status') == 'ok' else 1)"; then
+              ready=1
+              break
             fi
             sleep 1
           done
+          if [ "$ready" -ne 1 ]; then
+            docker logs "$cid"
+            exit 1
+          fi
 
-          docker logs "$cid"
-          exit 1
+          python - <<'PY'
+          import json
+          import urllib.request
+
+          base = "http://127.0.0.1:18080"
+          request = urllib.request.Request(
+              f"{base}/scans",
+              data=json.dumps({
+                  "scan_id": "ci-smoke",
+                  "target": {"hosts": ["127.0.0.1"], "ports": []},
+                  "vts": [],
+              }).encode(),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          scan_id = json.load(urllib.request.urlopen(request, timeout=2))
+          assert scan_id == "ci-smoke"
+
+          action = urllib.request.Request(
+              f"{base}/scans/ci-smoke",
+              data=b'{"action":"start"}',
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          assert urllib.request.urlopen(action, timeout=2).status == 204
+          status = json.load(urllib.request.urlopen(f"{base}/scans/ci-smoke/status", timeout=2))
+          assert status["status"] == "running"
+          results = json.load(urllib.request.urlopen(f"{base}/scans/ci-smoke/results?range=0-1", timeout=2))
+          assert len(results["items"]) == 2
+          PY
+
 
       - name: Extract image metadata
         id: meta
