@@ -1,7 +1,10 @@
 # HTTP API
 
-The mock scanner exposes a compact JSON API for gvmd and gvmd-ng compatibility
-tests. Responses are deterministic for a given scenario, seed, and scan id.
+The mock scanner exposes the HTTP subset of the openvasd scanner API used by
+gvmd's HTTP scanner connector. Responses are deterministic for a given
+scenario, seed, and scan id. Legacy helper endpoints from the first mock
+version are still available, but the openvasd-compatible paths are the primary
+contract.
 
 ## Health and Discovery
 
@@ -17,11 +20,25 @@ Returns process health and the active scenario.
 
 Returns the fixture API version and supported lifecycle features.
 
-`GET /preferences`
+`HEAD /scans`, `HEAD /vts`, `HEAD /health`
+
+Return openvasd-style metadata headers: `api-version`, `feed-version`, and
+`authentication`.
+
+`GET /health/alive`, `GET /health/ready`, `GET /health/started`
+
+Return process health for openvasd-style container probes.
+
+`GET /scans/preferences`
 
 Returns synthetic scanner preferences such as port range, alive test, and
 maximum checks. Manager tests can use this endpoint to validate preference
 discovery without depending on a real scanner feed.
+
+`GET /vts`
+
+Returns a deterministic list of VT OIDs so managers can exercise feed/NVT
+discovery paths without mounting a real feed.
 
 ## Scan Lifecycle
 
@@ -30,19 +47,23 @@ discovery without depending on a real scanner feed.
 Creates a scan and returns a deterministic scan id.
 
 ```json
-{"id":"scan-0001"}
+"scan-0001"
 ```
 
-The request body must be a JSON object. The mock stores it for traceability but
-does not validate Greenbone target semantics.
+The request body must be a JSON object. If the body contains `scan_id`, the
+mock uses that id; this matches gvmd's current openvasd payload builder, which
+passes the report id through to the scanner. Otherwise the mock allocates
+`scan-0001`, `scan-0002`, and so on. The mock stores the payload for
+traceability but does not validate Greenbone target semantics.
 
-`POST /scans/{id}/start`
+`GET /scans/{id}`
 
-Starts or restarts a scan. Successful starts return `204`.
+Returns the stored scan configuration plus `scan_id`.
 
-`POST /scans/{id}/stop`
+`POST /scans/{id}`
 
-Stops a non-terminal scan. Successful stops return `204`.
+Performs an openvasd scan action. The body must be `{"action":"start"}` or
+`{"action":"stop"}`. Successful actions return `204`.
 
 `GET /scans/{id}/status`
 
@@ -51,8 +72,19 @@ scenario state, so tests do not need sleeps to make scans complete.
 
 `GET /scans/{id}/results`
 
-Returns paged result data. Both `offset`/`limit` and `page`/`page_size` are
-accepted.
+Returns paged result data. The openvasd `range=0-12` query form is supported.
+For compatibility with existing mock clients, `offset`/`limit` and
+`page`/`page_size` are also accepted. The response contains openvasd-compatible
+`items` and the legacy `results` fields.
+
+`GET /scans/{id}/results/{rid}`
+
+Returns a single result by zero-based openvasd result id.
+
+`POST /scans/{id}/start` and `POST /scans/{id}/stop`
+
+Legacy aliases for older mock clients. Prefer `POST /scans/{id}` with an
+action body for drop-in openvasd compatibility.
 
 `DELETE /scans/{id}`
 

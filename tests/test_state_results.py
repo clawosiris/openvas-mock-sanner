@@ -9,14 +9,21 @@ class StateAndResultTests(unittest.TestCase):
     def test_lifecycle_transitions(self):
         state = AppState(load_config({}))
         scan = state.create_scan({"target": "example.test"})
-        self.assertEqual(scan.status, "created")
+        self.assertEqual(scan.status, "stored")
         self.assertEqual(start_scan(scan), (204, None))
-        self.assertEqual(start_scan(scan)[0], 409)
+        self.assertEqual(start_scan(scan)[0], 406)
         self.assertEqual(status_for(scan)["status"], "running")
         self.assertEqual(status_for(scan)["status"], "succeeded")
-        self.assertEqual(stop_scan(scan)[0], 409)
+        self.assertEqual(stop_scan(scan)[0], 406)
         self.assertEqual(delete_scan(scan), (204, None))
         self.assertIsNone(state.get_scan(scan.id))
+
+    def test_honors_openvasd_payload_scan_id(self):
+        state = AppState(load_config({}))
+        scan = state.create_scan({"scan_id": "gvmd-report-id"})
+        self.assertEqual(scan.id, "gvmd-report-id")
+        with self.assertRaises(ValueError):
+            state.create_scan({"scan_id": "gvmd-report-id"})
 
     def test_stop_active_scan(self):
         state = AppState(load_config({}))

@@ -62,3 +62,21 @@
     - `GITHUB_TOKEN` and `GH_TOKEN` were not available.
   - Pushed branch compare/new PR URL:
     `https://github.com/clawosiris/openvas-mock-sanner/pull/new/feature/compatibility-mock-scanner`
+
+## 2026-05-25 HTTP Drop-In Compatibility
+
+- Branch: `feature/openvasd-http-compat`
+- Mission: make the mock useful as an HTTP openvasd drop-in replacement, without taking on the old OSP Unix socket surface.
+- Progress:
+  - Verified real Greenbone container wiring uses openvasd HTTP plus `LISTENING=0.0.0.0:80`.
+  - Added openvasd-compatible health, metadata, scan lifecycle, status, result range, preferences, and VT endpoints.
+  - Added `LISTENING` env alias and non-root port-80 container support.
+  - Updated README/container/API docs and unit tests.
+  - Local `python3 -m unittest discover` passed: 24 tests in 8.713s.
+- Key learnings:
+  - gvmd's `gvm-libs/http_scanner` expects `POST /scans` to return a JSON string scan id, then uses `POST /scans/{id}` with `{"action":"start"}` or `{"action":"stop"}`.
+  - gvmd's openvasd payload builder includes `scan_id`; honoring it avoids report/scanner id drift.
+  - libgvm currently has a path that can emit `?range0-12`; the mock accepts both that and the documented `?range=0-12` spelling.
+- Next:
+  - Run remote Docker build/smoke validation on Hetzner.
+  - Rebase, push branch, open PR.
