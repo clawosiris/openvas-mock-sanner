@@ -70,15 +70,7 @@ jobs:
           trap 'docker rm -f "$cid"' EXIT
 
           for _ in $(seq 1 30); do
-            if python - <<'PY'
-import json
-import urllib.request
-
-with urllib.request.urlopen("http://127.0.0.1:18080/health", timeout=2) as response:
-    data = json.load(response)
-raise SystemExit(0 if data.get("status") == "ok" else 1)
-PY
-            then
+            if python -c "import json, urllib.request; data=json.load(urllib.request.urlopen('http://127.0.0.1:18080/health', timeout=2)); raise SystemExit(0 if data.get('status') == 'ok' else 1)"; then
               exit 0
             fi
             sleep 1

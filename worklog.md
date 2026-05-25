@@ -37,6 +37,9 @@
   - Local Docker build could not be run because this runtime does not provide a
     `docker` executable; GitHub Actions will run the container build and smoke
     test after push.
+  - Initial GitHub Actions run failed before jobs started because the workflow
+    YAML heredoc health probe was invalid; replaced it with a YAML-safe
+    single-line Python health probe.
 - PR URL:
   - PR creation blocked in this environment:
     - GitHub connector returned `403 Resource not accessible by integration`.
