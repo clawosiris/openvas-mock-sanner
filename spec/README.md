@@ -5,6 +5,7 @@ This directory is the shared source of truth for all benchmark implementations.
 Current documents:
 
 - `mock-server.md` — contract for the OpenVAS Scanner REST API mock server benchmark
+- `compatibility-mock-server.md` — stricter mock scanner contract for automated manager compatibility tests
 
 Rules:
 
