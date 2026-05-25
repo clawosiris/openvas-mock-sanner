@@ -87,3 +87,10 @@ curl -i -X DELETE http://127.0.0.1:8080/scans/scan-0001
 
 Normal success scenarios return `204` for delete. Deleted scans are no longer
 queryable and return `404` from scan-specific endpoints.
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 or
+later. See `LICENSE` for the full license text.
+
+SPDX-License-Identifier: AGPL-3.0-or-later
