@@ -9,10 +9,14 @@ from .config import Config
 
 
 def generate_results(config: Config, scan_id: str) -> list[dict[str, object]]:
+    """Generate the complete deterministic result set for a scan."""
+
     return [_result(config, scan_id, ordinal) for ordinal in range(1, config.result_count + 1)]
 
 
 def threat_for_severity(severity: float) -> str:
+    """Map CVSS-like numeric severity into Greenbone threat buckets."""
+
     if severity >= 9.0:
         return "Critical"
     if severity >= 7.0:
@@ -25,6 +29,8 @@ def threat_for_severity(severity: float) -> str:
 
 
 def _result(config: Config, scan_id: str, ordinal: int) -> dict[str, object]:
+    """Build one rich result object from stable scenario inputs."""
+
     digest = sha256(f"{config.seed}:{config.scenario}:{scan_id}:{ordinal}".encode("utf-8")).hexdigest()
     host_num = ((ordinal - 1) % config.host_count) + 1
     port = [22, 80, 443, 5432, 8080][(ordinal - 1) % 5]
@@ -34,6 +40,10 @@ def _result(config: Config, scan_id: str, ordinal: int) -> dict[str, object]:
     timestamp = (config.clock_start + timedelta(seconds=ordinal * 10)).strftime("%Y-%m-%dT%H:%M:%SZ")
     cve_year = 2020 + (ordinal % 7)
     cve_num = int(digest[:4], 16) % 9000 + 1000
+    # The payload is intentionally richer than the current mock endpoints need.
+    # gvmd imports depend on host, port, NVT, severity, references, and timing
+    # fields, so keeping them present here prevents false confidence from a
+    # too-thin scanner fixture.
     return {
         "id": f"{scan_id}-result-{ordinal:06d}",
         "ordinal": ordinal,

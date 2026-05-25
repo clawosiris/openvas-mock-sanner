@@ -30,12 +30,22 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True)
 class FailureAt:
+    """Configurable fault injection point.
+
+    `point` names a lifecycle endpoint such as `start` or `results`. `count`
+    optionally limits the failure to the Nth call for that point, which lets
+    gvmd compatibility tests distinguish persistent scanner errors from
+    retryable transient failures.
+    """
+
     point: str
     count: int | None = None
 
 
 @dataclass(frozen=True)
 class Config:
+    """Fully validated runtime configuration for one mock scanner process."""
+
     host: str
     port: int
     scenario: str
@@ -49,6 +59,13 @@ class Config:
 
 
 def load_config(env: Mapping[str, str] | None = None) -> Config:
+    """Load scanner behavior from environment-style key/value pairs.
+
+    The service intentionally avoids config files and third-party packages so
+    the same artifact can run as a plain Python process, a CI test fixture, or a
+    container replacement for the real OpenVAS scanner.
+    """
+
     source = os.environ if env is None else env
     scenario = source.get("MOCK_SCENARIO", "success-basic")
     if scenario not in SCENARIOS:
@@ -70,6 +87,8 @@ def load_config(env: Mapping[str, str] | None = None) -> Config:
 
 
 def _scenario_defaults(scenario: str) -> dict[str, int]:
+    """Return result volume defaults that make scenario intent visible."""
+
     if scenario == "success-large-report":
         return {"result_count": 250, "host_count": 25}
     if scenario == "empty-report":

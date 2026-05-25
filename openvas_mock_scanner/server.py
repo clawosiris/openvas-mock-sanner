@@ -20,6 +20,8 @@ PREFERENCES = [
 
 
 def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
+    """Create a request handler bound to a specific in-memory app state."""
+
     class Handler(BaseHTTPRequestHandler):
         server_version = "OpenVASMockScanner/0.1"
 
@@ -111,6 +113,9 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 self._json(404, error("scan_not_found", "scan id does not exist"))
                 return
             request_number = scan.results_request_count + 1
+            # Result faults default to the first request so callers can exercise
+            # retry logic without also configuring MOCK_FAILURE_AT. Supplying
+            # `MOCK_FAILURE_AT=results:N` moves the anomaly to a later page.
             if scan.scenario == "transient-results-error" and not scan.transient_results_failed and _matches_defaultable_failure(app_state.config.failure_at, request_number):
                 scan.results_request_count += 1
                 scan.transient_results_failed = True
@@ -148,6 +153,8 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 return None
 
         def _json(self, status: int, body: dict[str, object] | None) -> None:
+            """Write compact deterministic JSON for stable golden comparisons."""
+
             self.send_response(status)
             if body is None or status == HTTPStatus.NO_CONTENT:
                 self.end_headers()
@@ -166,6 +173,8 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
 
 
 def capabilities() -> dict[str, object]:
+    """Return a small feature document that manager tests can probe."""
+
     return {
         "api_version": "compat-1",
         "scanner_name": "openvas-mock-sanner",
@@ -180,6 +189,8 @@ def capabilities() -> dict[str, object]:
 
 
 def serve(config: Config | None = None) -> None:
+    """Run the HTTP service until interrupted."""
+
     config = load_config() if config is None else config
     httpd = ThreadingHTTPServer((config.host, config.port), make_handler(AppState(config)))
     try:
@@ -193,6 +204,8 @@ def _parts(path: str) -> list[str]:
 
 
 def _parse_paging(query: dict[str, list[str]], default_limit: int) -> tuple[int, int] | dict[str, object]:
+    """Normalize offset/limit and page/page_size query forms."""
+
     try:
         if "page" in query or "page_size" in query:
             page = int(query.get("page", ["1"])[0])
@@ -214,6 +227,8 @@ def _should_fail(failure_at: FailureAt | None, point: str, count: int) -> bool:
 
 
 def _matches_defaultable_failure(failure_at: FailureAt | None, request_number: int) -> bool:
+    """Match result fault injection with a scenario-level default."""
+
     if failure_at is None:
         return request_number == 1
     return failure_at.point == "results" and (failure_at.count is None or failure_at.count == request_number)

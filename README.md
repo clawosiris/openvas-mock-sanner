@@ -3,6 +3,20 @@
 A deterministic HTTP JSON compatibility mock for OpenVAS/Greenbone manager
 integration tests. Compatibility mode is the default behavior on `devel`.
 
+The mock is intended to stand in for an OpenVAS scanner container in manager
+integration tests. It does not execute vulnerability tests; it provides stable
+scanner lifecycle behavior, result payloads, paging, preferences, and failure
+scenarios that gvmd-compatible clients can use as a repeatable fixture.
+
+## Documentation
+
+- [Container usage](docs/container.md)
+- [HTTP API](docs/api.md)
+- [Release and nightly builds](docs/release.md)
+- [Compatibility mock contract](spec/compatibility-mock-server.md)
+- [Implementation spec](spec/implementation-spec.md)
+- [Test plan](spec/test-plan.md)
+
 ## Run
 
 Requires Python 3.10+ and no third-party packages.
@@ -59,6 +73,9 @@ CI publishes successful `main`, `devel`, and `v*` tag builds to:
 ```text
 ghcr.io/clawosiris/openvas-mock-scanner
 ```
+
+Release tags publish semantic image tags and create GitHub releases. The
+scheduled nightly workflow builds and publishes `ghcr.io/clawosiris/openvas-mock-scanner:nightly`.
 
 Supported scenarios:
 

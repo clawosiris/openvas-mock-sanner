@@ -9,6 +9,12 @@ Current documents:
 - `implementation-spec.md` — concrete implementation contract for the compatibility mock scanner service
 - `test-plan.md` — verification plan and readiness gate for the compatibility mock scanner
 
+Operational documentation lives in `../docs/`:
+
+- `api.md` — HTTP endpoints and response shapes
+- `container.md` — local and CI container usage
+- `release.md` — release and nightly build automation
+
 Rules:
 
 - Freeze spec changes before comparing model runs.

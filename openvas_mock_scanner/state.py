@@ -15,6 +15,13 @@ ACTIVE_STATUSES = {"created", "queued", "stored", "requested", "running"}
 
 @dataclass
 class Scan:
+    """Mutable lifecycle record for one synthetic scanner task.
+
+    The mock keeps all state in memory because gvmd compatibility tests need
+    deterministic scanner behavior, not scanner durability. The counters are
+    part of that contract: they drive scenario transitions and one-shot faults.
+    """
+
     id: str
     payload: dict[str, Any]
     scenario: str
@@ -31,6 +38,8 @@ class Scan:
 
 
 class AppState:
+    """Process-local registry for scans created during a test run."""
+
     def __init__(self, config: Config):
         self.config = config
         self._next_scan = 1
@@ -76,6 +85,13 @@ def stop_scan(scan: Scan) -> tuple[int, dict[str, object] | None]:
 
 
 def status_for(scan: Scan) -> dict[str, object]:
+    """Advance and return the externally visible scanner status.
+
+    Status polling is deliberately stateful. Real scanner integrations often
+    encode behavior around repeated polls, so the mock models progress through
+    poll counts instead of wall-clock time to keep tests stable and fast.
+    """
+
     if scan.status == "created":
         return {"id": scan.id, "status": "created", "progress": 0, "poll_count": scan.status_poll_count}
 
@@ -110,6 +126,8 @@ def delete_scan(scan: Scan) -> tuple[int, dict[str, object] | None]:
 
 
 def page_results(scan: Scan, offset: int, limit: int) -> dict[str, object]:
+    """Return a deterministic page of results with scenario-specific anomalies."""
+
     scan.results_request_count += 1
     visible_results = scan.results
     if scan.scenario == "delayed-findings" and scan.status not in TERMINAL_STATUSES and scan.results_request_count == 1:
@@ -117,6 +135,9 @@ def page_results(scan: Scan, offset: int, limit: int) -> dict[str, object]:
 
     total = len(visible_results)
     slice_offset = offset
+    # Some manager implementations assume result paging is strictly monotonic.
+    # This fixture intentionally repeats one page so compatibility tests can
+    # verify duplicate detection and idempotent import behavior.
     if scan.scenario == "duplicate-result-page" and offset > 0 and not scan.duplicate_page_sent:
         slice_offset = max(0, offset - limit)
         scan.duplicate_page_sent = True
