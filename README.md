@@ -60,7 +60,7 @@ docker build -t openvas-mock-scanner:local .
 Run it as a drop-in mock scanner service:
 
 ```sh
-docker run --rm -p 8080:8080 \
+docker run --rm -p 8080:80 \
   -e MOCK_SCENARIO=success-basic \
   openvas-mock-scanner:local
 ```
