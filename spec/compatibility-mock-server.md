@@ -297,7 +297,7 @@ delete and scanner-refused delete behavior.
 Each public scanner result must match actual openvasd scanner behavior. It
 should be raw result data, not manager-side report enrichment.
 
-Minimum fields:
+Minimum public scanner result fields:
 
 - stable zero-based result id
 - result type
@@ -308,8 +308,8 @@ Minimum fields:
 - protocol
 - scanner message
 
-Fields that belong to VT metadata or manager/report enrichment, not scanner
-results:
+Fields that belong to VT metadata or manager/report enrichment, not public
+scanner results:
 
 - CVEs
 - CPEs
@@ -317,6 +317,10 @@ results:
 - CVSS vector
 - tags
 - references
+- severity/threat
+- QoD
+- NVT name/family
+- remediation or detection text beyond the raw scanner message
 - vulnerability publication date
 - certificate metadata for TLS-related scenarios
 - application/product metadata for service scenarios
@@ -367,8 +371,10 @@ A compatibility harness must be able to verify:
 4. Status exposes the required status vocabulary and deterministic progress.
 5. Results can be consumed by page or range without missing or duplicating
    records in the normal success scenario.
-6. Result records include severity, QoD, NVT metadata, host/service identity,
-   timestamps, and remediation fields.
+6. Public result records include only the raw scanner result shape: stable
+   zero-based id, type, host identity, OID, port/protocol, and scanner message.
+   Severity, QoD, VT metadata, timestamps, and remediation fields are reserved
+   for VT metadata or manager/report enrichment keyed by OID.
 7. Large reports force multiple result fetches.
 8. Empty reports are represented without special-case crashes.
 9. Stop, failure, malformed response, transient error, delete refusal, and

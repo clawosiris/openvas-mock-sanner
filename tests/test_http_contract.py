@@ -49,6 +49,34 @@ class Service:
 
 
 class HttpContractTests(unittest.TestCase):
+    RAW_RESULT_KEYS = {
+        "id",
+        "type",
+        "ip_address",
+        "hostname",
+        "oid",
+        "port",
+        "protocol",
+        "message",
+    }
+    ENRICHED_RESULT_KEYS = {
+        "cve",
+        "cpe",
+        "cvss_base",
+        "cvss_vector",
+        "description",
+        "detection",
+        "family",
+        "nvt_name",
+        "qod",
+        "references",
+        "severity",
+        "solution",
+        "solution_type",
+        "tags",
+        "threat",
+    }
+
     def test_common_capabilities_preferences_and_lifecycle(self):
         with Service() as service:
             status, headers, body = service.request("GET", "/health")
@@ -86,10 +114,30 @@ class HttpContractTests(unittest.TestCase):
             status, _, results = service.request("GET", f"/scans/{scan_id}/results?range=0-1")
             self.assertEqual(status, 200)
             self.assertIn("items", results)
+            self.assertEqual(results["items"], results["results"])
+            self.assertEqual(set(results["items"][0]), self.RAW_RESULT_KEYS)
+            self.assertTrue(self.ENRICHED_RESULT_KEYS.isdisjoint(results["items"][0]))
             self.assertEqual(service.request("GET", f"/scans/{scan_id}/results/0")[0], 200)
             self.assertEqual(service.request("DELETE", f"/scans/{scan_id}")[0], 204)
             self.assertEqual(service.request("GET", f"/scans/{scan_id}/status")[0], 404)
             self.assertEqual(service.request("POST", "/scans/nope/start")[0], 404)
+
+    def test_openvasd_results_expose_only_raw_scanner_fields(self):
+        with Service() as service:
+            scan_id = service.request("POST", "/scans", {"target": {"hosts": ["example.test"]}})[2]
+            service.request("POST", f"/scans/{scan_id}", {"action": "start"})
+
+            status, _, page = service.request("GET", f"/scans/{scan_id}/results?range=0-0")
+            self.assertEqual(status, 200)
+            self.assertEqual(len(page["items"]), 1)
+            self.assertEqual(page["items"], page["results"])
+            result = page["items"][0]
+            self.assertEqual(set(result), self.RAW_RESULT_KEYS)
+            self.assertTrue(self.ENRICHED_RESULT_KEYS.isdisjoint(result))
+
+            status, _, single = service.request("GET", f"/scans/{scan_id}/results/{result['id']}")
+            self.assertEqual(status, 200)
+            self.assertEqual(single, result)
 
     def test_invalid_paging(self):
         with Service() as service:
