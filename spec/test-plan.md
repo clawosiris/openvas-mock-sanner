@@ -68,13 +68,16 @@ Verify:
 
 Verify:
 
-- generated result ids are stable
-- ordinals are stable and sequential
-- host distribution is stable for a given host count
-- severity/threat mapping is correct
-- required report fields are present
+- internal fixture rows have stable ids
+- internal ordinals are stable and sequential
+- internal host distribution is stable for a given host count
+- severity/threat mapping is stable for fixture and VT metadata generation
+- internal fixture rows keep enough rich source data to derive raw scanner
+  messages and future VT metadata
 - generated timestamps are based on `MOCK_CLOCK_START`
 - no generated fixture includes real credentials or customer data
+- public `/scans/{id}/results` projections expose only raw scanner result
+  fields, not the richer internal fixture fields
 
 ### Paging
 
@@ -123,6 +126,11 @@ Verify:
 - `GET /scans/{id}/status` returns `200`
 - `POST /scans/{id}/stop` returns `204` for active scans
 - `GET /scans/{id}/results` returns `200`
+- each public result object has exactly raw openvasd scanner fields:
+  `id`, `type`, `ip_address`, `hostname`, `oid`, `port`, `protocol`, and
+  `message`
+- public result objects do not include CVE, CPE, CVSS, references, tags,
+  severity, threat, family, QoD, NVT name, solution, or detection fields
 - `DELETE /scans/{id}` returns `204`
 - unknown scan id on lifecycle endpoints returns `404`
 

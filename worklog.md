@@ -1,5 +1,29 @@
 # Worklog
 
+## 2026-05-26 Issue #9 Raw Result Test Alignment
+
+- Branch: `issue9-raw-results-tests`
+- Mission: align issue #9 tests/specs with the raw openvasd scanner result
+  boundary introduced by PR #11.
+- Progress:
+  - Created a fresh checkout from `main` because the older local checkout has
+    divergent local history.
+  - Created branch `issue9-raw-results-tests` from commit `9ae0bd6`.
+  - Attempted to delegate implementation through Codex CLI. The OpenClaw Codex
+    home failed with missing bearer/basic auth; `/home/node/.codex` failed with
+    an expired/reused refresh token. Codex CLI needs re-login before it can run
+    in this environment.
+  - Added HTTP contract assertions that public result pages and single-result
+    lookups expose exactly raw openvasd scanner fields.
+  - Updated compatibility and test-plan wording so severity, QoD, VT metadata,
+    timestamps, and remediation are reserved for VT metadata or manager/report
+    enrichment rather than public `/scans/{id}/results`.
+- Verification:
+  - `python3 -m unittest discover` passed: 25 tests in 9.768s.
+  - `git diff --check` passed.
+- Next:
+  - Rebase, push branch, open PR.
+
 ## 2026-05-26 Feed-Backed Results Spec
 
 - Branch: `spec/feed-backed-results`
