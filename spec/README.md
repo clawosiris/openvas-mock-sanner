@@ -7,6 +7,7 @@ Current documents:
 - `mock-server.md` — contract for the OpenVAS Scanner REST API mock server benchmark
 - `compatibility-mock-server.md` — stricter mock scanner contract for automated manager compatibility tests
 - `implementation-spec.md` — concrete implementation contract for the compatibility mock scanner service
+- `feed-backed-results.md` — implementation spec for opt-in feed-backed realistic result generation
 - `test-plan.md` — verification plan and readiness gate for the compatibility mock scanner
 
 Operational documentation lives in `../docs/`:
