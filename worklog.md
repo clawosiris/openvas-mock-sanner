@@ -9,13 +9,18 @@
   - Added `spec/feed-backed-results.md`.
   - Updated `spec/README.md` so the new spec is discoverable.
   - Verified `git diff --check` and `python3 -m unittest discover`.
+  - Investigated PR #10 CI after the initial container job failed in `actions/checkout`.
+  - Reran the failed workflow job; the rerun stayed queued without materializing jobs.
+  - Rechecked local unit coverage on the PR worktree: 24 tests passed.
 - Current state:
   - The new spec defines feed metadata loading, scan intent extraction, target profile fixtures, deterministic candidate ranking, result field mapping, feed-aware scenarios, validation through `scan-examples`, and phased implementation steps.
+  - The original failed container job did not reach Docker. Checkout failed with GitHub 403 and the message "Your account is suspended"; the Python matrix passed on the same commit.
 - Key learnings:
   - Current result generation is isolated in `openvas_mock_scanner/results.py`, making feed-backed generation a separable mode rather than a rewrite of HTTP lifecycle behavior.
   - Synthetic mode should remain default because existing compatibility tests and CI rely on fixture-light deterministic output.
+  - The observed PR #10 failure is CI infrastructure/auth related, not a container behavior failure in this branch.
 - Next:
-  - Commit the spec and open a PR linked to issue #9.
+  - Push this worklog update to trigger a fresh PR check run.
 
 ## 2026-05-25
 
