@@ -5,25 +5,13 @@ from tests.test_http_contract import Service
 
 REQUIRED_FIELDS = {
     "id",
-    "ordinal",
     "type",
     "ip_address",
     "hostname",
+    "oid",
     "port",
     "protocol",
-    "service",
-    "oid",
-    "nvt_name",
-    "family",
-    "severity",
-    "threat",
-    "qod",
-    "description",
-    "detection",
-    "solution",
-    "solution_type",
-    "created_at",
-    "updated_at",
+    "message",
 }
 
 
@@ -43,6 +31,9 @@ class ScenarioTests(unittest.TestCase):
             results = service.request("GET", f"/scans/{scan_id}/results?offset=0&limit=100")[2]
             self.assertEqual(results["total"], 12)
             self.assertTrue(REQUIRED_FIELDS.issubset(results["results"][0]))
+            self.assertEqual(results["items"], results["results"])
+            self.assertNotIn("cve", results["results"][0])
+            self.assertNotIn("cvss_base", results["results"][0])
             self.assertEqual(service.request("DELETE", f"/scans/{scan_id}")[0], 204)
 
     def test_success_large_report(self):
@@ -129,7 +120,7 @@ class ScenarioTests(unittest.TestCase):
             duplicate = service.request("GET", f"/scans/{scan_id}/results?offset=2&limit=2")[2]
             resumed = service.request("GET", f"/scans/{scan_id}/results?offset=4&limit=2")[2]
             self.assertEqual([r["id"] for r in first["results"]], [r["id"] for r in duplicate["results"]])
-            self.assertEqual([r["ordinal"] for r in resumed["results"]], [5, 6])
+            self.assertEqual([r["id"] for r in resumed["results"]], [4, 5])
 
 
 if __name__ == "__main__":

@@ -40,10 +40,8 @@ def _result(config: Config, scan_id: str, ordinal: int) -> dict[str, object]:
     timestamp = (config.clock_start + timedelta(seconds=ordinal * 10)).strftime("%Y-%m-%dT%H:%M:%SZ")
     cve_year = 2020 + (ordinal % 7)
     cve_num = int(digest[:4], 16) % 9000 + 1000
-    # The payload is intentionally richer than the current mock endpoints need.
-    # gvmd imports depend on host, port, NVT, severity, references, and timing
-    # fields, so keeping them present here prevents false confidence from a
-    # too-thin scanner fixture.
+    # Keep richer source data internally so scenarios can derive stable raw
+    # scanner findings and future VT metadata from the same fixture row.
     return {
         "id": f"{scan_id}-result-{ordinal:06d}",
         "ordinal": ordinal,

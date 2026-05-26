@@ -181,7 +181,9 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 return
             offset, limit = parsed
             page = page_results(scan, offset, limit)
-            page["items"] = [_openvasd_result(row) for row in page["results"]]
+            results = [_openvasd_result(row) for row in page["results"]]
+            page["items"] = results
+            page["results"] = results
             self._json(200, page)
 
         def _scan_result(self, scan_id: str, result_id: str) -> None:

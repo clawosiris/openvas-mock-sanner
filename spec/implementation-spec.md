@@ -135,30 +135,20 @@ Results must be generated from deterministic inputs:
 The same inputs must produce byte-stable JSON except for explicitly documented
 volatile fields. The default implementation should avoid volatile fields.
 
-Minimum result fields:
+Public `/scans/{scan_id}/results` responses must match the raw openvasd scanner
+shape. Minimum public result fields:
 
 - `id`
-- `ordinal`
 - `type`
 - `ip_address`
 - `hostname`
 - `port`
 - `protocol`
-- `service`
 - `oid`
-- `nvt_name`
-- `family`
-- `severity`
-- `threat`
-- `qod`
-- `description`
-- `detection`
-- `solution`
-- `solution_type`
-- `created_at`
-- `updated_at`
+- `message`
 
-Recommended result fields:
+The public scanner result payload must not include manager/report enrichment
+fields such as:
 
 - `cve`
 - `cpe`
@@ -166,6 +156,10 @@ Recommended result fields:
 - `cvss_vector`
 - `references`
 - `tags`
+
+Internal fixture generation may keep richer source data for deterministic
+scenario construction, and `/vts` or future VT metadata endpoints may expose
+feed-backed VT details keyed by OID.
 
 Severity/threat mapping must be stable:
 

@@ -262,36 +262,22 @@ Example:
   "next_offset": 2,
   "results": [
     {
-      "id": "result-000001",
-      "ordinal": 1,
+      "id": 0,
       "type": "alarm",
       "ip_address": "10.42.0.1",
       "hostname": "synthetic-host-0001.lab",
+      "oid": "1.3.6.1.4.1.25623.1.0.147696",
       "port": 443,
       "protocol": "tcp",
-      "service": "https",
-      "oid": "1.3.6.1.4.1.25623.1.0.147696",
-      "nvt_name": "Synthetic TLS Certificate Finding",
-      "family": "SSL and TLS",
-      "cve": ["CVE-2024-0001"],
-      "cpe": ["cpe:/a:synthetic:service:1.0"],
-      "cvss_base": 7.5,
-      "severity": 7.5,
-      "threat": "High",
-      "qod": 80,
-      "solution_type": "Mitigation",
-      "solution": "Replace the synthetic certificate.",
-      "description": "Deterministic synthetic finding for compatibility tests.",
-      "detection": "The mock scanner generated this result from fixture data.",
-      "created_at": "2026-01-01T00:00:10Z",
-      "updated_at": "2026-01-01T00:00:10Z"
+      "message": "Deterministic synthetic finding for compatibility tests."
     }
   ]
 }
 ```
 
 The result set must be stable for the same scenario, seed, scan id, host count,
-and result count.
+and result count. `items` and `results` must contain the same raw scanner
+result objects.
 
 ### `DELETE /scans/{scan_id}`
 
@@ -308,42 +294,36 @@ delete and scanner-refused delete behavior.
 
 ## Result Data Requirements
 
-Each generated result must include enough data for manager-side report and
-asset ingestion tests.
+Each public scanner result must match actual openvasd scanner behavior. It
+should be raw result data, not manager-side report enrichment.
 
 Minimum fields:
 
-- stable external result id
-- stable ordinal
+- stable zero-based result id
 - result type
 - host IP address
 - hostname
+- NVT/OID
 - port
 - protocol
-- service name
-- NVT/OID
-- NVT name
-- NVT family
-- severity
-- threat level
-- QoD
-- description
-- detection detail
-- solution
-- solution type
-- created timestamp
-- updated timestamp
+- scanner message
 
-Recommended fields:
+Fields that belong to VT metadata or manager/report enrichment, not scanner
+results:
 
 - CVEs
 - CPEs
+- CVSS base score
 - CVSS vector
 - tags
 - references
 - vulnerability publication date
 - certificate metadata for TLS-related scenarios
 - application/product metadata for service scenarios
+
+The mock may use richer internal fixture data to choose deterministic OIDs and
+messages, but it must not expose that enrichment directly from
+`/scans/{scan_id}/results`.
 
 Synthetic data must be safe to publish and must not include real secrets,
 credentials, or customer data.

@@ -75,7 +75,10 @@ scenario state, so tests do not need sleeps to make scans complete.
 Returns paged result data. The openvasd `range=0-12` query form is supported.
 For compatibility with existing mock clients, `offset`/`limit` and
 `page`/`page_size` are also accepted. The response contains openvasd-compatible
-`items` and the legacy `results` fields.
+`items` and `results` fields with the same raw scanner result objects. Scanner
+results intentionally contain only the result id/type, host, OID, port/protocol,
+and message; CVE, CVSS, references, tags, and other VT details belong to
+`/vts` or manager-side report enrichment.
 
 `GET /scans/{id}/results/{rid}`
 
