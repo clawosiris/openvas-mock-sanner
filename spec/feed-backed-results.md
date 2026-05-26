@@ -8,9 +8,10 @@ deterministic CI fixture behavior.
 
 This is not a NASL executor, scanner engine, or full dependency resolver. The
 goal is compatibility-test realism: gvmd and gvmd-ng should receive scanner
-results whose OIDs, names, families, CVEs, severities, references, and selected
-tags look like real feed-backed findings and remain byte-stable for fixed
-inputs.
+results whose OIDs and messages line up with realistic feed-backed VT metadata,
+while the public scanner result payload stays as thin as real openvasd output.
+Names, families, CVEs, severities, references, and selected tags should live in
+VT metadata or downstream enrichment keyed by OID.
 
 ## Non-Goals
 
@@ -80,7 +81,8 @@ The loader must build an OID-indexed structure. Required usable fields are:
 - VT name
 - family
 
-Optional fields, when present, should enrich generated results:
+Optional fields, when present, should enrich generated VT metadata and internal
+fixture selection:
 
 - severity / CVSS base score
 - CVSS vector
@@ -227,30 +229,33 @@ The generator must include a mix of result types when possible:
 
 ## Result Mapping
 
-Feed-backed results must keep the existing `/scans/{id}/results` response
-contract.
+Feed-backed mode must not enrich the public `/scans/{id}/results` scanner
+payload with feed metadata. The scanner endpoint should remain openvasd-shaped
+raw result data, with feed-backed metadata used to choose realistic OIDs and to
+populate VT metadata exposed outside the result payload.
 
-Field mapping:
+Public scanner result field mapping:
 
 - `oid` -> feed OID
-- `nvt_name` -> feed VT name
-- `family` -> feed family
-- `severity` -> feed severity or deterministic fallback
-- `threat` -> existing severity bucket mapping
-- `qod` -> feed QoD value or deterministic fallback
-- `description` -> summary/impact/affected fields, with deterministic fallback
-- `detection` -> detection method or generated scan/profile explanation
-- `solution` -> feed solution or deterministic fallback
-- `solution_type` -> feed solution type or deterministic fallback
-- `cve` -> feed CVEs
-- `cpe` -> profile/feed CPEs
-- `cvss_base` -> feed CVSS base score
-- `cvss_vector` -> feed CVSS vector
-- `references` -> feed references
-- `tags` -> include existing scenario/seed tags plus feed/profile metadata
+- `message` -> deterministic scanner finding text derived from feed/profile
+  context
+- `type` -> openvasd result type selected from severity/result intent
+- `ip_address`, `hostname`, `port`, `protocol` -> deterministic target profile
+  assignment
+- `id` -> deterministic zero-based scanner result id
 
-Generated result IDs, timestamps, host assignment, and ordering must remain
-deterministic.
+VT metadata mapping, outside `/scans/{id}/results`:
+
+- VT name -> feed VT name
+- family -> feed family
+- severity -> feed severity or deterministic fallback
+- threat -> existing severity bucket mapping
+- QoD -> feed QoD value or deterministic fallback
+- description/detection/solution/solution type -> feed summary, impact,
+  detection method, and solution fields with deterministic fallbacks
+- CVEs/CPEs/CVSS/references/tags -> feed/profile metadata keyed by OID
+
+Generated result IDs, host assignment, and ordering must remain deterministic.
 
 ## Scenarios
 
@@ -357,8 +362,9 @@ Integration tests, where practical:
 - Feed-backed mode is opt-in.
 - Existing HTTP consumers continue to receive valid result payloads.
 - Existing tests continue to pass.
-- Feed-backed output uses real feed OIDs, names, families, CVEs, references,
-  severities, and tags when metadata exists.
+- Feed-backed scanner output uses real feed OIDs and realistic messages while
+  exposing names, families, CVEs, references, severities, and tags through VT
+  metadata or downstream enrichment keyed by OID.
 - Result generation is deterministic for the same scan payload, feed metadata,
   target profile, scenario, clock, counts, and seed.
 - Missing optional feed/profile fields degrade gracefully.
