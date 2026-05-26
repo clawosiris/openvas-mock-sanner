@@ -1,5 +1,22 @@
 # Worklog
 
+## 2026-05-26 Feed-Backed Results Spec
+
+- Branch: `spec/feed-backed-results`
+- Mission: create an implementation-facing spec for feed-backed realistic scan result generation from issue #9.
+- Progress:
+  - Reviewed issue #9 and the current spec structure.
+  - Added `spec/feed-backed-results.md`.
+  - Updated `spec/README.md` so the new spec is discoverable.
+  - Verified `git diff --check` and `python3 -m unittest discover`.
+- Current state:
+  - The new spec defines feed metadata loading, scan intent extraction, target profile fixtures, deterministic candidate ranking, result field mapping, feed-aware scenarios, validation through `scan-examples`, and phased implementation steps.
+- Key learnings:
+  - Current result generation is isolated in `openvas_mock_scanner/results.py`, making feed-backed generation a separable mode rather than a rewrite of HTTP lifecycle behavior.
+  - Synthetic mode should remain default because existing compatibility tests and CI rely on fixture-light deterministic output.
+- Next:
+  - Commit the spec and open a PR linked to issue #9.
+
 ## 2026-05-25
 
 - Branch: `feature/compatibility-mock-scanner`
