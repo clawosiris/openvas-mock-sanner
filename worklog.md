@@ -29,6 +29,25 @@
   - Review and merge PR #13, then decide whether to implement the next issue
     #9 slice: Notus/SCAP fixture inputs or scan-examples enrichment validation.
 
+## 2026-05-26 Issue #9 scan-examples Enrichment Validation
+
+- Branch: `issue9-scan-examples-validation`
+- Mission: make the issue #9 scan-examples validation executable instead of
+  only documented.
+- Progress:
+  - Created branch from current `origin/main` after PR #13 was merged.
+  - Added a cross-repo test that starts the mock scanner in feed-backed mode,
+    collects raw openvasd-shaped `/scans/{id}/results`, and passes those
+    results through `scan_examples.enrichment.enrich_results_from_files`.
+  - Updated CI to check out `clawosiris/scan-examples` beside the mock scanner
+    repo and set `SCAN_EXAMPLES_PATH` so the test uses the real enrichment
+    implementation.
+- Current state:
+  - Edits are in progress and not yet verified.
+- Next:
+  - Run local unit tests with `SCAN_EXAMPLES_PATH`.
+  - Rebase before push, open PR, and verify GitHub CI.
+
 ## 2026-05-26 Issue #9 Raw Result Test Alignment
 
 - Branch: `issue9-raw-results-tests`
