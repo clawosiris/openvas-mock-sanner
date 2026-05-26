@@ -18,6 +18,8 @@ Use three layers:
    real HTTP client.
 3. Determinism tests that compare generated responses across repeated runs with
    identical configuration.
+4. Cross-repository validation against `scan-examples` enrichment when
+   `SCAN_EXAMPLES_PATH` points to a checked-out `scan-examples` repository.
 
 Every test must run locally without a real OpenVAS scanner, database, network
 target, or external service.
@@ -84,6 +86,18 @@ Verify:
 - optional target profiles influence host and service selection
 - `GET /vts/{oid}` exposes loaded VT metadata outside the scanner result
   payload
+
+### scan-examples Enrichment Validation
+
+Verify:
+
+- CI checks out `clawosiris/scan-examples` and sets `SCAN_EXAMPLES_PATH`
+- feed-backed mock scanner results remain raw openvasd-shaped before enrichment
+- raw result OIDs enrich through `scan_examples.enrichment.enrich_results_from_files`
+- enriched records report `vt-metadata-status: matched`
+- CVE metadata joins through the same `scan-examples` SCAP path
+- the validation uses the real `scan-examples` Python enrichment code, not a
+  duplicate mock-side implementation
 
 ### Paging
 
