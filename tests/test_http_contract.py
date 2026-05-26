@@ -7,7 +7,7 @@ import unittest
 from openvas_mock_scanner.config import load_config
 from openvas_mock_scanner.server import make_handler
 from openvas_mock_scanner.state import AppState
-from tests.test_feed_backed_results import VT_HTTP, fixture_paths
+from tests.test_feed_backed_results import VT_HTTP, VT_NOTUS, fixture_paths
 
 
 class Service:
@@ -161,6 +161,36 @@ class HttpContractTests(unittest.TestCase):
 
         result = page["items"][0]
         self.assertEqual(result["oid"], VT_HTTP)
+        self.assertEqual(set(result), self.RAW_RESULT_KEYS)
+        self.assertTrue(self.ENRICHED_RESULT_KEYS.isdisjoint(result))
+
+    def test_notus_package_backed_http_results_stay_raw(self):
+        with fixture_paths() as paths:
+            with Service(
+                {
+                    "MOCK_TARGET_PROFILE": paths["profile"],
+                    "MOCK_NOTUS_ADVISORIES_PATH": paths["notus"],
+                    "MOCK_SCAP_METADATA_PATH": paths["scap"],
+                    "MOCK_RESULT_COUNT": "1",
+                }
+            ) as service:
+                vt = service.request("GET", f"/vts/{VT_NOTUS}")[2]
+                self.assertEqual(vt["family"], "Linux Local Security Checks")
+                self.assertEqual(vt["cves"], ["CVE-2024-5535"])
+
+                scan_id = service.request(
+                    "POST",
+                    "/scans",
+                    {
+                        "target": {"hosts": ["192.0.2.10"], "ports": ["T:80"]},
+                        "vts": [{"oid": VT_NOTUS}],
+                    },
+                )[2]
+                service.request("POST", f"/scans/{scan_id}", {"action": "start"})
+                page = service.request("GET", f"/scans/{scan_id}/results?range=0-0")[2]
+
+        result = page["items"][0]
+        self.assertEqual(result["oid"], VT_NOTUS)
         self.assertEqual(set(result), self.RAW_RESULT_KEYS)
         self.assertTrue(self.ENRICHED_RESULT_KEYS.isdisjoint(result))
 

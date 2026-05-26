@@ -82,8 +82,15 @@ docker run --rm -p 18080:80 \
   -v "$PWD/fixtures:/fixtures:ro" \
   -e MOCK_VT_METADATA_PATH=/fixtures/vt-metadata.json \
   -e MOCK_TARGET_PROFILE=/fixtures/target-profile.json \
+  -e MOCK_NOTUS_ADVISORIES_PATH=/fixtures/notus-advisories.json \
+  -e MOCK_SCAP_METADATA_PATH=/fixtures/scap-cves.json \
   ghcr.io/clawosiris/openvas-mock-scanner:nightly
 ```
+
+`MOCK_NOTUS_ADVISORIES_PATH` is useful for package-based local security checks:
+installed packages from `MOCK_TARGET_PROFILE` are matched against advisory
+fixtures, while `MOCK_SCAP_METADATA_PATH` supplies CVE summaries and CVSS data
+for the VT metadata endpoint and downstream enrichment.
 
 Set `MOCK_FEED_STRICT=true` when test startup should fail if a configured feed
 or profile file is missing or invalid. With the default `false`, invalid

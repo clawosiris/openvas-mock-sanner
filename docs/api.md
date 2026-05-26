@@ -38,15 +38,17 @@ discovery without depending on a real scanner feed.
 `GET /vts`
 
 Returns a deterministic list of VT OIDs so managers can exercise feed/NVT
-discovery paths without mounting a real feed. When `MOCK_VT_METADATA_PATH` is
-configured, this list comes from the loaded feed metadata.
+discovery paths without mounting a real feed. When `MOCK_VT_METADATA_PATH` or
+`MOCK_NOTUS_ADVISORIES_PATH` is configured, this list comes from the loaded VT
+metadata and package-advisory fixtures.
 
 `GET /vts/{oid}`
 
 Returns VT metadata for a loaded feed-backed OID, including fields such as
 name, family, severity, CVEs, references, tags, QoD, and solution data when the
-fixture provides them. This metadata is intentionally separate from raw scanner
-results.
+fixture provides them. SCAP/CVE metadata from `MOCK_SCAP_METADATA_PATH` may
+fill advisory severity, CVSS vector, references, and summary fields. This
+metadata is intentionally separate from raw scanner results.
 
 ## Scan Lifecycle
 

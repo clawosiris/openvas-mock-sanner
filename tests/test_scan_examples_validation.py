@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from tests.test_http_contract import HttpContractTests, Service
+from tests.test_feed_backed_results import VT_NOTUS, fixture_paths
 
 
 VT_HTTP = "1.3.6.1.4.1.25623.1.0.990001"
@@ -94,6 +95,58 @@ class ScanExamplesEnrichmentValidationTests(unittest.TestCase):
             {"CVE-2021-41773", "CVE-2026-0002"},
         )
         self.assertTrue(all(row["cve-metadata-status"] == "matched" for row in enriched))
+
+    def test_notus_scap_backed_raw_results_enrich_after_vt_metadata_export(self):
+        sys.path.insert(0, str(_scan_examples_src()))
+        from scan_examples.enrichment import enrich_results_from_files
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vt_metadata_path = root / "vt-metadata.json"
+            scap_path = root / "scap.json"
+            results_path = root / "raw-results.json"
+
+            with fixture_paths() as paths:
+                with Service(
+                    {
+                        "MOCK_TARGET_PROFILE": paths["profile"],
+                        "MOCK_NOTUS_ADVISORIES_PATH": paths["notus"],
+                        "MOCK_SCAP_METADATA_PATH": paths["scap"],
+                        "MOCK_RESULT_COUNT": "1",
+                    }
+                ) as service:
+                    vt_metadata = service.request("GET", f"/vts/{VT_NOTUS}")[2]
+                    scan_id = service.request(
+                        "POST",
+                        "/scans",
+                        {
+                            "scan_id": "notus-scap-validation",
+                            "target": {"hosts": ["192.0.2.10"], "ports": ["T:80"]},
+                            "vts": [{"oid": VT_NOTUS}],
+                        },
+                    )[2]
+                    self.assertEqual(service.request("POST", f"/scans/{scan_id}", {"action": "start"})[0], 204)
+                    raw_results = service.request("GET", f"/scans/{scan_id}/results?range=0-0")[2]["results"]
+
+                scap_path.write_text(Path(paths["scap"]).read_text(encoding="utf-8"), encoding="utf-8")
+
+            self.assertEqual(len(raw_results), 1)
+            self.assertEqual(set(raw_results[0]), HttpContractTests.RAW_RESULT_KEYS)
+            self.assertTrue(HttpContractTests.ENRICHED_RESULT_KEYS.isdisjoint(raw_results[0]))
+
+            vt_metadata_path.write_text(json.dumps([vt_metadata]), encoding="utf-8")
+            results_path.write_text(json.dumps({"scan_id": scan_id, "results": raw_results}), encoding="utf-8")
+            enriched = enrich_results_from_files(
+                results_path=results_path,
+                vt_metadata_path=vt_metadata_path,
+                scap_path=scap_path,
+                engine="python",
+            )
+
+        self.assertEqual(len(enriched), 1)
+        self.assertEqual(enriched[0]["vt-metadata-status"], "matched")
+        self.assertEqual(enriched[0]["cve-ids"], ["CVE-2024-5535"])
+        self.assertEqual(enriched[0]["cve-metadata-status"], "matched")
 
 
 def _vt_metadata():

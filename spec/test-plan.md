@@ -84,8 +84,13 @@ Verify:
 - feed-backed mode uses selected feed OIDs when they intersect loaded metadata
 - missing selected OIDs fall back deterministically
 - optional target profiles influence host and service selection
+- optional Notus advisory fixtures synthesize package-backed VT metadata
+- optional SCAP metadata fills CVE/CVSS fields for VT metadata and downstream
+  enrichment inputs
 - `GET /vts/{oid}` exposes loaded VT metadata outside the scanner result
   payload
+- Notus/SCAP-backed public `/scans/{id}/results` rows still expose only raw
+  scanner result fields
 
 ### scan-examples Enrichment Validation
 

@@ -32,12 +32,12 @@ Add these optional environment variables:
 - `MOCK_TARGET_PROFILE`
   - path to a target profile JSON fixture
   - optional in phase 1; recommended for realistic matching
-- `MOCK_NOTUS_PATH`
-  - optional advisory/package enrichment input
-  - may be ignored until a later phase if no local fixture format is available
-- `MOCK_SCAP_PATH`
-  - optional CVE/CPE enrichment input
-  - may be ignored until a later phase if no local fixture format is available
+- `MOCK_NOTUS_ADVISORIES_PATH`
+  - optional Notus/package advisory fixture input
+  - can synthesize VT metadata for package-based local security checks
+- `MOCK_SCAP_METADATA_PATH`
+  - optional SCAP/CVE metadata input
+  - can fill advisory severity, CVSS vector, CVE summary, and references
 - `MOCK_FEED_STRICT`
   - default: `false`
   - when `true`, startup fails if configured feed/profile paths are unreadable
@@ -102,6 +102,38 @@ fixture selection:
 
 The implementation must tolerate missing optional fields. Missing required
 fields make that VT unusable for feed-backed generation.
+
+## Notus and SCAP Fixture Inputs
+
+`MOCK_NOTUS_ADVISORIES_PATH` points to a JSON document containing package
+advisories. The loader accepts either a top-level list or an object containing
+`advisories`, `notus`, `items`, `data`, or `results`.
+
+Usable advisory fields:
+
+- `oid` / `id` / `vt_oid`
+- `name` / `title` / `advisory_id`
+- `family`
+- `severity`
+- `cves` / `cve` / `cve_refs`
+- `references`
+- `summary` / `description`
+- `solution` / `remediation`
+- `packages` / `affected_packages` / `affected`
+
+Package entries may be strings such as `openssl=3.0.10-1` or objects with
+`name`, `version`, `fixed_version`, `cpe`, and `source` fields.
+
+`MOCK_SCAP_METADATA_PATH` points to a JSON document containing CVE metadata.
+The loader accepts either a top-level list or an object containing `cves`,
+`vulnerabilities`, `items`, `data`, or `results`. Usable CVE fields are `id`,
+`cve`, or `cve_id`, plus optional severity/CVSS, descriptions, and references.
+
+Notus advisories are merged into VT metadata by OID. If an advisory has no
+matching VT metadata entry, the mock synthesizes a VT metadata record so
+package-backed local security checks can still generate raw scanner findings.
+SCAP metadata is used only to enrich VT metadata and downstream enrichment
+inputs; public scanner result rows remain raw openvasd-shaped rows.
 
 ## Scan Payload Extraction
 

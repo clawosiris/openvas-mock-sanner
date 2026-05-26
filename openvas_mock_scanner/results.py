@@ -7,7 +7,7 @@ from hashlib import sha256
 from typing import Any
 
 from .config import Config
-from .feed import FeedContext, HostProfile, ServiceProfile, load_feed_context, scan_hosts, scan_ports, selected_scan_oids, stable_payload_digest
+from .feed import FeedContext, HostProfile, PackageProfile, ServiceProfile, load_feed_context, scan_hosts, scan_ports, selected_scan_oids, stable_payload_digest
 
 
 def generate_results(config: Config, scan_id: str, payload: dict[str, Any] | None = None, feed_context: FeedContext | None = None) -> list[dict[str, object]]:
@@ -15,7 +15,7 @@ def generate_results(config: Config, scan_id: str, payload: dict[str, Any] | Non
 
     payload = payload or {}
     feed_context = feed_context if feed_context is not None else load_feed_context(config)
-    if config.vt_metadata_path and feed_context.metadata:
+    if feed_context.metadata:
         return _feed_results(config, scan_id, payload, feed_context)
     return [_result(config, scan_id, ordinal) for ordinal in range(1, config.result_count + 1)]
 
@@ -189,13 +189,15 @@ def _vt_score(vt: object, ports: tuple[int, ...], hosts: list[HostProfile]) -> i
             if ports and service.port in ports:
                 score += 1
         for package in host.packages:
-            name = package.get("name")
-            cpe = package.get("cpe")
-            if any(isinstance(term, str) and term.lower() in text for term in (name, cpe)):
+            if _package_matches_text(package, text):
                 score += 3
         if host.web_apps and any(term in text for term in ("web", "http", "apache", "nginx")):
             score += 2
     return score
+
+
+def _package_matches_text(package: PackageProfile, text: str) -> bool:
+    return any(term and term.lower() in text for term in (package.name, package.cpe, package.source))
 
 
 def _stable_rank(config: Config, scan_id: str, payload_digest: str, oid: str) -> str:
