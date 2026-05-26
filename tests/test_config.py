@@ -27,6 +27,8 @@ class ConfigTests(unittest.TestCase):
                 "MOCK_SEED": "demo",
                 "MOCK_VT_METADATA_PATH": "/tmp/vt-metadata.json",
                 "MOCK_TARGET_PROFILE": "/tmp/target-profile.json",
+                "MOCK_NOTUS_ADVISORIES_PATH": "/tmp/notus.json",
+                "MOCK_SCAP_METADATA_PATH": "/tmp/scap.json",
                 "MOCK_FEED_STRICT": "true",
             }
         )
@@ -35,6 +37,8 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.result_count, 8)
         self.assertEqual(config.vt_metadata_path, "/tmp/vt-metadata.json")
         self.assertEqual(config.target_profile_path, "/tmp/target-profile.json")
+        self.assertEqual(config.notus_advisories_path, "/tmp/notus.json")
+        self.assertEqual(config.scap_metadata_path, "/tmp/scap.json")
         self.assertTrue(config.feed_strict)
 
     def test_openvasd_listening_alias(self):

@@ -58,19 +58,51 @@ class ServiceProfile:
 
 
 @dataclass(frozen=True)
+class PackageProfile:
+    name: str
+    version: str = ""
+    cpe: str = ""
+    source: str = ""
+
+
+@dataclass(frozen=True)
 class HostProfile:
     host: str
     hostname: str = ""
     services: tuple[ServiceProfile, ...] = ()
-    packages: tuple[dict[str, object], ...] = ()
+    packages: tuple[PackageProfile, ...] = ()
     web_apps: tuple[dict[str, object], ...] = ()
     auth: dict[str, object] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class PackageAdvisory:
+    oid: str
+    name: str
+    family: str = "Linux Local Security Checks"
+    severity: float = 0.0
+    cves: tuple[str, ...] = ()
+    packages: tuple[PackageProfile, ...] = ()
+    summary: str = ""
+    solution: str = ""
+    references: tuple[dict[str, str], ...] = ()
+
+
+@dataclass(frozen=True)
+class ScapCve:
+    cve_id: str
+    severity: float = 0.0
+    cvss_vector: str = ""
+    summary: str = ""
+    references: tuple[dict[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
 class FeedContext:
     metadata: dict[str, VtMetadata]
     target_profile: tuple[HostProfile, ...] = ()
+    advisories: dict[str, PackageAdvisory] = field(default_factory=dict)
+    scap_cves: dict[str, ScapCve] = field(default_factory=dict)
     diagnostics: tuple[str, ...] = ()
 
 
@@ -80,12 +112,26 @@ def load_feed_context(config: Config) -> FeedContext:
     diagnostics: list[str] = []
     metadata: dict[str, VtMetadata] = {}
     target_profile: tuple[HostProfile, ...] = ()
+    advisories: dict[str, PackageAdvisory] = {}
+    scap_cves: dict[str, ScapCve] = {}
 
     if config.vt_metadata_path:
         metadata = _load_metadata_file(config.vt_metadata_path, config.feed_strict, diagnostics)
+    if config.scap_metadata_path:
+        scap_cves = _load_scap_metadata(config.scap_metadata_path, config.feed_strict, diagnostics)
+    if config.notus_advisories_path:
+        advisories = _load_notus_advisories(config.notus_advisories_path, config.feed_strict, diagnostics)
     if config.target_profile_path:
         target_profile = _load_target_profile(config.target_profile_path, config.feed_strict, diagnostics)
-    return FeedContext(metadata=metadata, target_profile=target_profile, diagnostics=tuple(diagnostics))
+    if advisories:
+        metadata = _merge_advisory_metadata(metadata, advisories, scap_cves)
+    return FeedContext(
+        metadata=metadata,
+        target_profile=target_profile,
+        advisories=advisories,
+        scap_cves=scap_cves,
+        diagnostics=tuple(diagnostics),
+    )
 
 
 def selected_scan_oids(payload: dict[str, Any]) -> set[str]:
@@ -161,6 +207,34 @@ def _load_target_profile(path: str, strict: bool, diagnostics: list[str]) -> tup
     return parsed
 
 
+def _load_notus_advisories(path: str, strict: bool, diagnostics: list[str]) -> dict[str, PackageAdvisory]:
+    try:
+        data = _read_json_file(path)
+        advisories = {item.oid: item for item in (_advisory_from_object(raw) for raw in _iter_advisory_objects(data)) if item is not None}
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        if strict:
+            raise ConfigError(f"invalid MOCK_NOTUS_ADVISORIES_PATH: {exc}") from exc
+        diagnostics.append(f"skipped Notus advisories {path}: {exc}")
+        return {}
+    if not advisories and strict:
+        raise ConfigError("invalid MOCK_NOTUS_ADVISORIES_PATH: no usable advisory entries")
+    return advisories
+
+
+def _load_scap_metadata(path: str, strict: bool, diagnostics: list[str]) -> dict[str, ScapCve]:
+    try:
+        data = _read_json_file(path)
+        cves = {item.cve_id: item for item in (_scap_cve_from_object(raw) for raw in _iter_cve_objects(data)) if item is not None}
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        if strict:
+            raise ConfigError(f"invalid MOCK_SCAP_METADATA_PATH: {exc}") from exc
+        diagnostics.append(f"skipped SCAP metadata {path}: {exc}")
+        return {}
+    if not cves and strict:
+        raise ConfigError("invalid MOCK_SCAP_METADATA_PATH: no usable CVE entries")
+    return cves
+
+
 def _read_json_file(path: str) -> object:
     with Path(path).expanduser().open("r", encoding="utf-8") as handle:
         return json.load(handle)
@@ -185,6 +259,50 @@ def _iter_vt_objects(data: object) -> Iterable[dict[str, object]]:
         if isinstance(value, dict):
             item = dict(value)
             item.setdefault("oid", key)
+            yield item
+
+
+def _iter_advisory_objects(data: object) -> Iterable[dict[str, object]]:
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                yield item
+        return
+    if not isinstance(data, dict):
+        return
+    for key in ("advisories", "notus", "items", "data", "results"):
+        value = data.get(key)
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    yield item
+            return
+    for key, value in data.items():
+        if isinstance(value, dict):
+            item = dict(value)
+            item.setdefault("oid", key)
+            yield item
+
+
+def _iter_cve_objects(data: object) -> Iterable[dict[str, object]]:
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                yield item
+        return
+    if not isinstance(data, dict):
+        return
+    for key in ("cves", "vulnerabilities", "items", "data", "results"):
+        value = data.get(key)
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    yield item
+            return
+    for key, value in data.items():
+        if isinstance(value, dict):
+            item = dict(value)
+            item.setdefault("id", key)
             yield item
 
 
@@ -214,6 +332,41 @@ def _metadata_from_object(item: dict[str, object]) -> VtMetadata | None:
     )
 
 
+def _advisory_from_object(item: dict[str, object]) -> PackageAdvisory | None:
+    oid = _first_string(item, ("oid", "id", "vt_oid"))
+    name = _first_string(item, ("name", "title", "advisory_id")) or oid
+    if not oid or not name:
+        return None
+    packages = tuple(pkg for pkg in (_package_from_object(raw) for raw in _package_objects(item)) if pkg is not None)
+    references = tuple(_references(_first_present(item, ("references", "refs"))))
+    cves = tuple(_string_values(_first_present(item, ("cves", "cve", "cve_refs")))) or tuple(_cves_from_references(references))
+    return PackageAdvisory(
+        oid=oid,
+        name=name,
+        family=_first_string(item, ("family",)) or "Linux Local Security Checks",
+        severity=_float_value(_first_present(item, ("severity", "cvss_base", "score")), 0.0),
+        cves=tuple(cve.upper() for cve in cves),
+        packages=packages,
+        summary=_summary(item),
+        solution=_first_string(item, ("solution", "remediation")),
+        references=references,
+    )
+
+
+def _scap_cve_from_object(item: dict[str, object]) -> ScapCve | None:
+    cve_id = _first_string(item, ("id", "cve", "cve_id", "name")).upper()
+    if not cve_id.startswith("CVE-"):
+        return None
+    references = tuple(_references(_first_present(item, ("references", "refs"))))
+    return ScapCve(
+        cve_id=cve_id,
+        severity=_float_value(_first_present(item, ("severity", "cvss_base", "cvss3_base_score", "score")), 0.0),
+        cvss_vector=_first_string(item, ("cvss_vector", "cvss3_vector", "cvss_base_vector")),
+        summary=_scap_summary(item),
+        references=references,
+    )
+
+
 def _host_from_object(item: object) -> HostProfile | None:
     if not isinstance(item, dict):
         return None
@@ -239,17 +392,131 @@ def _host_from_object(item: object) -> HostProfile | None:
                 cpe=_first_string(service, ("cpe",)),
             )
         )
-    packages = item.get("packages", [])
+    packages = tuple(pkg for pkg in (_package_from_object(raw) for raw in _package_objects(item)) if pkg is not None)
     web_apps = item.get("web_apps", [])
     auth = item.get("auth", {})
     return HostProfile(
         host=host,
         hostname=_first_string(item, ("hostname", "name")),
         services=tuple(services),
-        packages=tuple(pkg for pkg in packages if isinstance(pkg, dict)) if isinstance(packages, list) else (),
+        packages=packages,
         web_apps=tuple(app for app in web_apps if isinstance(app, dict)) if isinstance(web_apps, list) else (),
         auth=auth if isinstance(auth, dict) else {},
     )
+
+
+def _package_objects(item: dict[str, object]) -> Iterable[object]:
+    for key in ("packages", "affected_packages", "affected", "installed_packages"):
+        value = item.get(key)
+        if isinstance(value, list):
+            yield from value
+            return
+
+
+def _package_from_object(item: object) -> PackageProfile | None:
+    if isinstance(item, str):
+        name, _, version = item.partition("=")
+        name = name.strip()
+        if not name:
+            return None
+        return PackageProfile(name=name, version=version.strip())
+    if not isinstance(item, dict):
+        return None
+    name = _first_string(item, ("name", "package", "product"))
+    if not name:
+        return None
+    return PackageProfile(
+        name=name,
+        version=_first_string(item, ("version", "installed_version", "affected_version", "fixed_version")),
+        cpe=_first_string(item, ("cpe",)),
+        source=_first_string(item, ("source", "repository", "ecosystem")),
+    )
+
+
+def _merge_advisory_metadata(
+    metadata: dict[str, VtMetadata],
+    advisories: dict[str, PackageAdvisory],
+    scap_cves: dict[str, ScapCve],
+) -> dict[str, VtMetadata]:
+    merged = dict(metadata)
+    for advisory in advisories.values():
+        existing = merged.get(advisory.oid)
+        if existing is None:
+            merged[advisory.oid] = _metadata_from_advisory(advisory, scap_cves)
+        else:
+            merged[advisory.oid] = _enrich_metadata_from_advisory(existing, advisory, scap_cves)
+    return merged
+
+
+def _metadata_from_advisory(advisory: PackageAdvisory, scap_cves: dict[str, ScapCve]) -> VtMetadata:
+    severity = advisory.severity or max((scap_cves[cve].severity for cve in advisory.cves if cve in scap_cves), default=0.0)
+    summaries = [scap_cves[cve].summary for cve in advisory.cves if cve in scap_cves and scap_cves[cve].summary]
+    references = list(advisory.references)
+    for cve in advisory.cves:
+        references.append({"class": "cve", "id": cve})
+        if cve in scap_cves:
+            references.extend(scap_cves[cve].references)
+    return VtMetadata(
+        oid=advisory.oid,
+        name=advisory.name,
+        family=advisory.family,
+        severity=severity,
+        cvss_vector=next((scap_cves[cve].cvss_vector for cve in advisory.cves if cve in scap_cves and scap_cves[cve].cvss_vector), ""),
+        cves=advisory.cves,
+        references=tuple(references),
+        tags={
+            "feed-source": "notus",
+            "packages": [package.name for package in advisory.packages],
+        },
+        summary=advisory.summary or (summaries[0] if summaries else ""),
+        solution=advisory.solution,
+        solution_type="VendorFix" if advisory.solution else "",
+        qod=97,
+    )
+
+
+def _enrich_metadata_from_advisory(existing: VtMetadata, advisory: PackageAdvisory, scap_cves: dict[str, ScapCve]) -> VtMetadata:
+    severity = existing.severity or advisory.severity or max((scap_cves[cve].severity for cve in advisory.cves if cve in scap_cves), default=0.0)
+    cves = tuple(sorted(set(existing.cves + advisory.cves)))
+    tags = dict(existing.tags)
+    tags.setdefault("feed-source", "vt+notus")
+    tags["packages"] = [package.name for package in advisory.packages]
+    references = list(existing.references or advisory.references)
+    known_cve_refs = {reference.get("id", "").upper() for reference in references if (reference.get("class") or reference.get("type", "")).lower() == "cve"}
+    for cve in cves:
+        if cve not in known_cve_refs:
+            references.append({"class": "cve", "id": cve})
+    return VtMetadata(
+        oid=existing.oid,
+        name=existing.name,
+        family=existing.family,
+        severity=severity,
+        cvss_vector=existing.cvss_vector or next((scap_cves[cve].cvss_vector for cve in cves if cve in scap_cves and scap_cves[cve].cvss_vector), ""),
+        cves=cves,
+        cpes=existing.cpes,
+        references=tuple(references),
+        tags=tags,
+        summary=existing.summary or advisory.summary,
+        detection=existing.detection,
+        solution=existing.solution or advisory.solution,
+        solution_type=existing.solution_type or ("VendorFix" if advisory.solution else ""),
+        qod=existing.qod,
+    )
+
+
+def _scap_summary(item: dict[str, object]) -> str:
+    direct = _summary(item)
+    if direct:
+        return direct
+    descriptions = item.get("descriptions")
+    if isinstance(descriptions, list):
+        for description in descriptions:
+            if not isinstance(description, dict):
+                continue
+            value = description.get("value")
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
 
 
 def _first_present(item: dict[str, object], keys: tuple[str, ...]) -> object:

@@ -1,5 +1,43 @@
 # Worklog
 
+## 2026-05-26 Issue #9 Notus/SCAP Runtime Fixtures
+
+- Branch: `issue9-notus-scap-fixtures`
+- Started from `origin/main` at PR #14 merge commit `46b86bb`.
+- Goal:
+  - Add opt-in runtime fixture inputs for Notus/package advisories and SCAP CVE metadata.
+  - Let target package facts influence feed-backed realistic findings.
+  - Preserve raw openvasd-shaped public scanner result responses.
+  - Cover the behavior in unit/HTTP tests and docs.
+
+### Progress
+
+- Created branch from current `origin/main`.
+- Added `MOCK_NOTUS_ADVISORIES_PATH` and `MOCK_SCAP_METADATA_PATH` config.
+- Added Notus advisory and SCAP CVE loaders to feed context.
+- Normalized target-profile package fixtures and use package facts in
+  feed-backed candidate ranking.
+- Merge Notus advisories into VT metadata by OID; synthesize VT metadata when
+  an advisory has no separate VT metadata entry.
+- Preserve raw HTTP result projection; Notus/SCAP details are visible through
+  `/vts/{oid}` and through `scan-examples` enrichment after exporting VT
+  metadata.
+- Updated README, API/container docs, implementation spec, feed-backed spec,
+  and test plan.
+
+### Verification
+
+- `python3 -m unittest discover` passed: 41 tests, 2 skipped
+  (`scan-examples` optional validation skipped without `SCAN_EXAMPLES_PATH`).
+- `SCAN_EXAMPLES_PATH=/home/node/.openclaw/workspace-dev-gea/tmp/scan-examples-plan python3 -m unittest discover` passed: 41 tests.
+- `git diff --check` passed.
+
+### Key Learnings
+
+- `scan-examples` extracts CVE IDs from VT metadata references, so synthesized
+  Notus VT metadata must expose CVEs both as `cves` and as `{"class":"cve",
+  "id":"..."}` references.
+
 ## 2026-05-26 Issue #9 Feed-Backed Generation
 
 - Branch: `issue9-feed-backed-generation`

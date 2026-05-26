@@ -11,6 +11,7 @@ from openvas_mock_scanner.state import AppState
 VT_HTTP = "1.3.6.1.4.1.25623.1.0.900001"
 VT_SSH = "1.3.6.1.4.1.25623.1.0.900002"
 VT_UNUSED = "1.3.6.1.4.1.25623.1.0.900003"
+VT_NOTUS = "1.3.6.1.4.1.25623.1.1.900004"
 
 
 class FeedBackedResultTests(unittest.TestCase):
@@ -82,6 +83,42 @@ class FeedBackedResultTests(unittest.TestCase):
         self.assertEqual(results[0]["cve"], ["CVE-2026-0001"])
         self.assertIn("Example VT summary", results[0]["description"])
 
+    def test_notus_advisory_and_scap_metadata_drive_package_finding(self):
+        with fixture_paths() as paths:
+            config = load_config(
+                {
+                    "MOCK_TARGET_PROFILE": paths["profile"],
+                    "MOCK_NOTUS_ADVISORIES_PATH": paths["notus"],
+                    "MOCK_SCAP_METADATA_PATH": paths["scap"],
+                    "MOCK_RESULT_COUNT": "1",
+                }
+            )
+            results = generate_results(
+                config,
+                "scan-notus",
+                {
+                    "target": {"hosts": ["192.0.2.10"], "ports": ["T:80"]},
+                    "vts": [{"oid": VT_NOTUS}],
+                },
+            )
+
+        self.assertEqual(results[0]["oid"], VT_NOTUS)
+        self.assertEqual(results[0]["family"], "Linux Local Security Checks")
+        self.assertEqual(results[0]["cve"], ["CVE-2024-5535"])
+        self.assertEqual(results[0]["cvss_base"], 7.5)
+        self.assertIn("openssl", results[0]["tags"]["packages"])
+        self.assertIn("OpenSSL buffer overread", results[0]["description"])
+
+    def test_strict_invalid_notus_and_scap_inputs_fail_state_startup(self):
+        cases = [
+            {"MOCK_NOTUS_ADVISORIES_PATH": "/does/not/exist.json", "MOCK_FEED_STRICT": "true"},
+            {"MOCK_SCAP_METADATA_PATH": "/does/not/exist.json", "MOCK_FEED_STRICT": "true"},
+        ]
+        for env in cases:
+            with self.subTest(env=env):
+                with self.assertRaises(ConfigError):
+                    AppState(load_config(env))
+
 
 def fixture_paths():
     return FeedFixture()
@@ -133,14 +170,47 @@ class FeedFixture:
                         }
                     ],
                     "web_apps": [{"path": "/", "name": "demo"}],
+                    "packages": [
+                        {
+                            "name": "openssl",
+                            "version": "3.0.10-1",
+                            "cpe": "cpe:/a:openssl:openssl:3.0.10",
+                        }
+                    ],
+                }
+            ]
+        }
+        notus = {
+            "advisories": [
+                {
+                    "oid": VT_NOTUS,
+                    "name": "OpenSSL package security update",
+                    "severity": 7.5,
+                    "cves": ["CVE-2024-5535"],
+                    "affected_packages": [{"name": "openssl", "fixed_version": "3.0.13-1"}],
+                    "solution": "Install the vendor OpenSSL security update.",
+                }
+            ]
+        }
+        scap = {
+            "cves": [
+                {
+                    "id": "CVE-2024-5535",
+                    "cvss3_base_score": 7.5,
+                    "cvss3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "descriptions": [{"lang": "en", "value": "OpenSSL buffer overread vulnerability."}],
                 }
             ]
         }
         metadata_path = root / "vt-metadata.json"
         profile_path = root / "target-profile.json"
+        notus_path = root / "notus.json"
+        scap_path = root / "scap.json"
         metadata_path.write_text(json.dumps({"vts": metadata}), encoding="utf-8")
         profile_path.write_text(json.dumps(profile), encoding="utf-8")
-        return {"metadata": str(metadata_path), "profile": str(profile_path)}
+        notus_path.write_text(json.dumps(notus), encoding="utf-8")
+        scap_path.write_text(json.dumps(scap), encoding="utf-8")
+        return {"metadata": str(metadata_path), "profile": str(profile_path), "notus": str(notus_path), "scap": str(scap_path)}
 
     def __exit__(self, exc_type, exc, tb):
         self.tmp.cleanup()

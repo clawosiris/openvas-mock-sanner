@@ -60,6 +60,8 @@ class Config:
     seed: str
     vt_metadata_path: str | None = None
     target_profile_path: str | None = None
+    notus_advisories_path: str | None = None
+    scap_metadata_path: str | None = None
     feed_strict: bool = False
 
 
@@ -91,6 +93,8 @@ def load_config(env: Mapping[str, str] | None = None) -> Config:
         seed=source.get("MOCK_SEED", "compat"),
         vt_metadata_path=_parse_optional_path(source.get("MOCK_VT_METADATA_PATH"), "MOCK_VT_METADATA_PATH"),
         target_profile_path=_parse_optional_path(source.get("MOCK_TARGET_PROFILE"), "MOCK_TARGET_PROFILE"),
+        notus_advisories_path=_parse_optional_path(source.get("MOCK_NOTUS_ADVISORIES_PATH"), "MOCK_NOTUS_ADVISORIES_PATH"),
+        scap_metadata_path=_parse_optional_path(source.get("MOCK_SCAP_METADATA_PATH"), "MOCK_SCAP_METADATA_PATH"),
         feed_strict=_parse_bool(source.get("MOCK_FEED_STRICT", "false"), "MOCK_FEED_STRICT"),
     )
 

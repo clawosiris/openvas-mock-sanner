@@ -57,9 +57,14 @@ Required variables:
   - when set and valid, result generation uses loaded feed OIDs and VT names
 - `MOCK_TARGET_PROFILE`
   - optional path to a target/service/package fixture
+- `MOCK_NOTUS_ADVISORIES_PATH`
+  - optional path to a package advisory fixture for local security checks
+- `MOCK_SCAP_METADATA_PATH`
+  - optional path to a SCAP/CVE metadata fixture used to enrich VT metadata
 - `MOCK_FEED_STRICT`
   - default: `false`
-  - when `true`, configured feed/profile files must be readable and valid
+  - when `true`, configured feed/profile/advisory/SCAP files must be readable
+    and valid
 
 Startup must fail with a non-zero exit code for invalid configuration. The
 error must identify the invalid variable.
