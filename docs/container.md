@@ -71,3 +71,20 @@ docker run --rm -p 18080:80 \
 
 For a compose replacement of the Greenbone `openvasd` service, keep
 `LISTENING=0.0.0.0:80` and replace only the image name.
+
+## Feed-Backed Fixtures
+
+Mount VT metadata and optional target profiles into the container to generate
+results from real feed OIDs while keeping the public scanner result payload raw:
+
+```sh
+docker run --rm -p 18080:80 \
+  -v "$PWD/fixtures:/fixtures:ro" \
+  -e MOCK_VT_METADATA_PATH=/fixtures/vt-metadata.json \
+  -e MOCK_TARGET_PROFILE=/fixtures/target-profile.json \
+  ghcr.io/clawosiris/openvas-mock-scanner:nightly
+```
+
+Set `MOCK_FEED_STRICT=true` when test startup should fail if a configured feed
+or profile file is missing or invalid. With the default `false`, invalid
+optional files are skipped and synthetic generation remains available.

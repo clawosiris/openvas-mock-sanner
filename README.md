@@ -42,12 +42,22 @@ Runtime configuration is read from environment variables:
 | `MOCK_RESULT_COUNT` | scenario-specific |
 | `MOCK_HOST_COUNT` | scenario-specific |
 | `MOCK_SEED` | `compat` |
+| `MOCK_VT_METADATA_PATH` | unset; enables feed-backed OID/message generation |
+| `MOCK_TARGET_PROFILE` | unset; optional feed-backed target/service profile |
+| `MOCK_FEED_STRICT` | `false` |
 
 Example scenario selection:
 
 ```sh
 MOCK_SCENARIO=success-large-report MOCK_PORT=8081 python3 -m openvas_mock_scanner
 ```
+
+Feed-backed generation is opt-in. When `MOCK_VT_METADATA_PATH` points to a
+`vt-metadata.json` fixture, generated internal findings use real feed OIDs and
+VT names. Public `/scans/{id}/results` responses still expose only raw
+openvasd-style scanner fields; CVEs, CVSS, references, tags, and family data
+are available through VT metadata such as `GET /vts/{oid}` or downstream
+manager enrichment keyed by OID.
 
 ## Container
 

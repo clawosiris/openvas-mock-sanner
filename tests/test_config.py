@@ -25,11 +25,17 @@ class ConfigTests(unittest.TestCase):
                 "MOCK_RESULT_COUNT": "8",
                 "MOCK_HOST_COUNT": "2",
                 "MOCK_SEED": "demo",
+                "MOCK_VT_METADATA_PATH": "/tmp/vt-metadata.json",
+                "MOCK_TARGET_PROFILE": "/tmp/target-profile.json",
+                "MOCK_FEED_STRICT": "true",
             }
         )
         self.assertEqual(config.port, 9090)
         self.assertEqual(config.failure_at, FailureAt("results", 2))
         self.assertEqual(config.result_count, 8)
+        self.assertEqual(config.vt_metadata_path, "/tmp/vt-metadata.json")
+        self.assertEqual(config.target_profile_path, "/tmp/target-profile.json")
+        self.assertTrue(config.feed_strict)
 
     def test_openvasd_listening_alias(self):
         config = load_config({"LISTENING": "0.0.0.0:80"})
@@ -48,6 +54,7 @@ class ConfigTests(unittest.TestCase):
             {"MOCK_SCENARIO": "unknown"},
             {"MOCK_FAILURE_AT": "bogus"},
             {"LISTENING": "0.0.0.0"},
+            {"MOCK_FEED_STRICT": "maybe"},
         ]
         for env in cases:
             with self.subTest(env=env):

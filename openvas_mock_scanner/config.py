@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import os
+from pathlib import Path
 import re
 from typing import Mapping
 
@@ -57,6 +58,9 @@ class Config:
     result_count: int
     host_count: int
     seed: str
+    vt_metadata_path: str | None = None
+    target_profile_path: str | None = None
+    feed_strict: bool = False
 
 
 def load_config(env: Mapping[str, str] | None = None) -> Config:
@@ -85,6 +89,9 @@ def load_config(env: Mapping[str, str] | None = None) -> Config:
         result_count=_parse_int(source, "MOCK_RESULT_COUNT", defaults["result_count"], minimum=0),
         host_count=_parse_int(source, "MOCK_HOST_COUNT", defaults["host_count"], minimum=1),
         seed=source.get("MOCK_SEED", "compat"),
+        vt_metadata_path=_parse_optional_path(source.get("MOCK_VT_METADATA_PATH"), "MOCK_VT_METADATA_PATH"),
+        target_profile_path=_parse_optional_path(source.get("MOCK_TARGET_PROFILE"), "MOCK_TARGET_PROFILE"),
+        feed_strict=_parse_bool(source.get("MOCK_FEED_STRICT", "false"), "MOCK_FEED_STRICT"),
     )
 
 
@@ -167,3 +174,23 @@ def _parse_failure_at(raw: str | None) -> FailureAt | None:
     if count < 1:
         raise ConfigError("invalid MOCK_FAILURE_AT: count must be >= 1")
     return FailureAt(point, count)
+
+
+def _parse_optional_path(raw: str | None, name: str) -> str | None:
+    if raw is None or raw.strip() == "":
+        return None
+    path = Path(raw).expanduser()
+    if not path.exists():
+        return str(path)
+    if not path.is_file():
+        raise ConfigError(f"invalid {name}: must point to a file")
+    return str(path)
+
+
+def _parse_bool(raw: str, name: str) -> bool:
+    value = raw.strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    raise ConfigError(f"invalid {name}: must be true or false")
