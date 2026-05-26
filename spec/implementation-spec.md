@@ -52,6 +52,14 @@ Required variables:
   - default scenario-specific, but overrideable for success scenarios
 - `MOCK_SEED`
   - default: `compat`
+- `MOCK_VT_METADATA_PATH`
+  - optional path to feed `vt-metadata.json`
+  - when set and valid, result generation uses loaded feed OIDs and VT names
+- `MOCK_TARGET_PROFILE`
+  - optional path to a target/service/package fixture
+- `MOCK_FEED_STRICT`
+  - default: `false`
+  - when `true`, configured feed/profile files must be readable and valid
 
 Startup must fail with a non-zero exit code for invalid configuration. The
 error must identify the invalid variable.
@@ -102,6 +110,7 @@ The scan record must retain:
 - stop count
 - delete state
 - deterministic generated results
+- optional feed metadata and target profile diagnostics
 - deterministic timestamps
 - any injected failure bookkeeping
 

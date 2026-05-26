@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .config import Config
+from .feed import FeedContext, load_feed_context
 from .results import generate_results
 
 
@@ -42,6 +43,7 @@ class AppState:
 
     def __init__(self, config: Config):
         self.config = config
+        self.feed_context: FeedContext = load_feed_context(config)
         self._next_scan = 1
         self.scans: dict[str, Scan] = {}
 
@@ -56,7 +58,7 @@ class AppState:
             payload=payload,
             scenario=self.config.scenario,
             status="stored",
-            results=generate_results(self.config, scan_id),
+            results=generate_results(self.config, scan_id, payload, self.feed_context),
         )
         self.scans[scan_id] = scan
         return scan

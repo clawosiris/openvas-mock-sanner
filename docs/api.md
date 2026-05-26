@@ -38,7 +38,15 @@ discovery without depending on a real scanner feed.
 `GET /vts`
 
 Returns a deterministic list of VT OIDs so managers can exercise feed/NVT
-discovery paths without mounting a real feed.
+discovery paths without mounting a real feed. When `MOCK_VT_METADATA_PATH` is
+configured, this list comes from the loaded feed metadata.
+
+`GET /vts/{oid}`
+
+Returns VT metadata for a loaded feed-backed OID, including fields such as
+name, family, severity, CVEs, references, tags, QoD, and solution data when the
+fixture provides them. This metadata is intentionally separate from raw scanner
+results.
 
 ## Scan Lifecycle
 
@@ -54,7 +62,9 @@ The request body must be a JSON object. If the body contains `scan_id`, the
 mock uses that id; this matches gvmd's current openvasd payload builder, which
 passes the report id through to the scanner. Otherwise the mock allocates
 `scan-0001`, `scan-0002`, and so on. The mock stores the payload for
-traceability but does not validate Greenbone target semantics.
+traceability and uses target hosts, ports, selected `vts[].oid`, and scan
+preferences as deterministic hints for feed-backed result generation when that
+mode is enabled.
 
 `GET /scans/{id}`
 

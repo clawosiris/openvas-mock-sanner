@@ -55,7 +55,10 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 self._json(200, _openvasd_preferences())
                 return
             if parsed.path == "/vts":
-                self._json(200, _vts())
+                self._json(200, _vts(app_state))
+                return
+            if len(parts) == 2 and parts[0] == "vts":
+                self._vt(parts[1])
                 return
             if parsed.path == "/notus":
                 self._json(200, [])
@@ -197,6 +200,16 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                     return
             self._json(404, error("result_not_found", "result id does not exist"))
 
+        def _vt(self, oid: str) -> None:
+            vt = app_state.feed_context.metadata.get(oid)
+            if vt is None:
+                if oid in _synthetic_vts():
+                    self._json(200, {"oid": oid, "name": f"Synthetic VT {oid.rsplit('.', 1)[-1]}", "family": "Synthetic Compatibility"})
+                    return
+                self._json(404, error("vt_not_found", "VT metadata does not exist"))
+                return
+            self._json(200, vt.as_dict())
+
         def _delete_scan(self, scan_id: str) -> None:
             scan = app_state.get_scan(scan_id)
             if scan is None:
@@ -316,7 +329,13 @@ def _openvasd_preferences() -> list[dict[str, object]]:
     return [{key: value for key, value in pref.items() if key != "required"} for pref in PREFERENCES]
 
 
-def _vts() -> list[str]:
+def _vts(app_state: AppState) -> list[str]:
+    if app_state.feed_context.metadata:
+        return sorted(app_state.feed_context.metadata)
+    return _synthetic_vts()
+
+
+def _synthetic_vts() -> list[str]:
     return [f"1.3.6.1.4.1.25623.1.0.{100001 + index}" for index in range(10)]
 
 

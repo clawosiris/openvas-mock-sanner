@@ -50,6 +50,7 @@ Verify:
 - invalid `MOCK_LATENCY_MS` fails
 - unknown `MOCK_SCENARIO` fails
 - `MOCK_FAILURE_AT` parses supported lifecycle points
+- feed-backed fixture paths and `MOCK_FEED_STRICT` parse consistently
 
 ### State Transitions
 
@@ -78,6 +79,11 @@ Verify:
 - no generated fixture includes real credentials or customer data
 - public `/scans/{id}/results` projections expose only raw scanner result
   fields, not the richer internal fixture fields
+- feed-backed mode uses selected feed OIDs when they intersect loaded metadata
+- missing selected OIDs fall back deterministically
+- optional target profiles influence host and service selection
+- `GET /vts/{oid}` exposes loaded VT metadata outside the scanner result
+  payload
 
 ### Paging
 

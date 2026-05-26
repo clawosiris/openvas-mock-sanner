@@ -7,6 +7,7 @@ import unittest
 from openvas_mock_scanner.config import load_config
 from openvas_mock_scanner.server import make_handler
 from openvas_mock_scanner.state import AppState
+from tests.test_feed_backed_results import VT_HTTP, fixture_paths
 
 
 class Service:
@@ -138,6 +139,30 @@ class HttpContractTests(unittest.TestCase):
             status, _, single = service.request("GET", f"/scans/{scan_id}/results/{result['id']}")
             self.assertEqual(status, 200)
             self.assertEqual(single, result)
+
+    def test_feed_backed_http_results_stay_raw_and_vts_expose_metadata(self):
+        with fixture_paths() as paths:
+            with Service({"MOCK_VT_METADATA_PATH": paths["metadata"], "MOCK_TARGET_PROFILE": paths["profile"], "MOCK_RESULT_COUNT": "1"}) as service:
+                self.assertIn(VT_HTTP, service.request("GET", "/vts")[2])
+                vt = service.request("GET", f"/vts/{VT_HTTP}")[2]
+                self.assertEqual(vt["name"], "Apache httpd Path Traversal Vulnerability")
+                self.assertEqual(vt["cves"], ["CVE-2021-41773"])
+
+                scan_id = service.request(
+                    "POST",
+                    "/scans",
+                    {
+                        "target": {"hosts": ["192.0.2.10"], "ports": ["T:80"]},
+                        "vts": [{"oid": VT_HTTP}],
+                    },
+                )[2]
+                service.request("POST", f"/scans/{scan_id}", {"action": "start"})
+                page = service.request("GET", f"/scans/{scan_id}/results?range=0-0")[2]
+
+        result = page["items"][0]
+        self.assertEqual(result["oid"], VT_HTTP)
+        self.assertEqual(set(result), self.RAW_RESULT_KEYS)
+        self.assertTrue(self.ENRICHED_RESULT_KEYS.isdisjoint(result))
 
     def test_invalid_paging(self):
         with Service() as service:

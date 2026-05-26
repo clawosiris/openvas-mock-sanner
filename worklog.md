@@ -1,5 +1,34 @@
 # Worklog
 
+## 2026-05-26 Issue #9 Feed-Backed Generation
+
+- Branch: `issue9-feed-backed-generation`
+- Mission: implement the first feed-backed realistic generation slice for
+  issue #9 while preserving raw openvasd public result payloads.
+- Progress:
+  - Created a fresh checkout from remote `main` because the older local
+    checkout has stale divergent benchmark history.
+  - Created branch `issue9-feed-backed-generation` from commit `4397b83`.
+  - Scoped the implementation to opt-in VT metadata loading, scan payload OID
+    and target extraction, optional target profile matching, deterministic
+    feed-backed internal result generation, and raw public result projection.
+  - Added `MOCK_VT_METADATA_PATH`, `MOCK_TARGET_PROFILE`, and
+    `MOCK_FEED_STRICT` config.
+  - Added a tolerant VT metadata and target profile loader.
+  - Added feed-backed result generation when usable VT metadata is configured.
+  - Added `GET /vts/{oid}` so rich VT metadata is available outside raw
+    scanner result payloads.
+  - Updated README, API/container docs, implementation spec, and test plan.
+- Current state:
+  - Local tests pass with 30 tests.
+  - `git diff --check` passes.
+  - Opened PR `https://github.com/clawosiris/openvas-mock-sanner/pull/13`.
+  - PR CI passed Python 3.10/3.11/3.12 and container build/smoke; release
+    job skipped as expected for a PR.
+- Next:
+  - Review and merge PR #13, then decide whether to implement the next issue
+    #9 slice: Notus/SCAP fixture inputs or scan-examples enrichment validation.
+
 ## 2026-05-26 Issue #9 Raw Result Test Alignment
 
 - Branch: `issue9-raw-results-tests`
