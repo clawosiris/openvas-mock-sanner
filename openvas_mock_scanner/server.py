@@ -30,7 +30,7 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
 
         def do_HEAD(self) -> None:
             parsed = urlparse(self.path)
-            if parsed.path in {"/health", "/scans", "/vts", "/notus"}:
+            if parsed.path in {"/health", "/scans", "/vts", "/notus", "/feed/diagnostics"}:
                 self._headers(204 if parsed.path == "/scans" else 200)
                 return
             self._headers(404)
@@ -56,6 +56,9 @@ def make_handler(app_state: AppState) -> type[BaseHTTPRequestHandler]:
                 return
             if parsed.path == "/vts":
                 self._json(200, _vts(app_state))
+                return
+            if parsed.path == "/feed/diagnostics":
+                self._json(200, _feed_diagnostics(app_state))
                 return
             if len(parts) == 2 and parts[0] == "vts":
                 self._vt(parts[1])
@@ -333,6 +336,17 @@ def _vts(app_state: AppState) -> list[str]:
     if app_state.feed_context.metadata:
         return sorted(app_state.feed_context.metadata)
     return _synthetic_vts()
+
+
+def _feed_diagnostics(app_state: AppState) -> dict[str, object]:
+    return {
+        "feed_strict": app_state.config.feed_strict,
+        "metadata_count": len(app_state.feed_context.metadata),
+        "target_profile_hosts": len(app_state.feed_context.target_profile),
+        "notus_advisories": len(app_state.feed_context.advisories),
+        "scap_cves": len(app_state.feed_context.scap_cves),
+        "diagnostics": list(app_state.feed_context.diagnostics),
+    }
 
 
 def _synthetic_vts() -> list[str]:

@@ -12,6 +12,7 @@ VT_HTTP = "1.3.6.1.4.1.25623.1.0.900001"
 VT_SSH = "1.3.6.1.4.1.25623.1.0.900002"
 VT_UNUSED = "1.3.6.1.4.1.25623.1.0.900003"
 VT_NOTUS = "1.3.6.1.4.1.25623.1.1.900004"
+VT_DEPENDENCY = "1.3.6.1.4.1.25623.1.0.900005"
 
 
 class FeedBackedResultTests(unittest.TestCase):
@@ -119,6 +120,88 @@ class FeedBackedResultTests(unittest.TestCase):
                 with self.assertRaises(ConfigError):
                     AppState(load_config(env))
 
+    def test_permissive_invalid_feed_records_diagnostics_and_uses_synthetic(self):
+        config = load_config({"MOCK_VT_METADATA_PATH": "/does/not/exist.json"})
+        state = AppState(config)
+        scan = state.create_scan({"vts": [{"oid": VT_HTTP}]})
+
+        self.assertEqual(scan.results[0]["family"], "Synthetic Compatibility")
+        self.assertEqual(len(state.feed_context.metadata), 0)
+        self.assertTrue(any("skipped VT metadata" in item for item in state.feed_context.diagnostics))
+
+    def test_auth_missing_scenario_downgrades_credentialed_feed_vts(self):
+        with fixture_paths() as paths:
+            config = load_config(
+                {
+                    "MOCK_SCENARIO": "auth-missing",
+                    "MOCK_VT_METADATA_PATH": paths["metadata"],
+                    "MOCK_TARGET_PROFILE": paths["profile"],
+                    "MOCK_RESULT_COUNT": "1",
+                }
+            )
+            results = generate_results(config, "scan-auth", {"target": {"hosts": ["192.0.2.10"]}, "vts": [{"oid": VT_SSH}]})
+
+        self.assertEqual(results[0]["oid"], VT_SSH)
+        self.assertEqual(results[0]["type"], "log")
+        self.assertEqual(results[0]["cvss_base"], 0.0)
+        self.assertIn("usable authentication is missing", results[0]["description"])
+
+    def test_dependency_missing_scenario_downgrades_dependent_feed_vts(self):
+        with fixture_paths() as paths:
+            config = load_config(
+                {
+                    "MOCK_SCENARIO": "dependency-missing",
+                    "MOCK_VT_METADATA_PATH": paths["metadata"],
+                    "MOCK_RESULT_COUNT": "1",
+                }
+            )
+            results = generate_results(config, "scan-dependency", {"vts": [{"oid": VT_DEPENDENCY}]})
+
+        self.assertEqual(results[0]["oid"], VT_DEPENDENCY)
+        self.assertEqual(results[0]["type"], "log")
+        self.assertIn("required prerequisite result is missing", results[0]["description"])
+
+    def test_port_closed_scenario_reports_closed_profile_port_as_log(self):
+        with fixture_paths() as paths:
+            config = load_config(
+                {
+                    "MOCK_SCENARIO": "port-closed",
+                    "MOCK_VT_METADATA_PATH": paths["metadata"],
+                    "MOCK_TARGET_PROFILE": paths["profile"],
+                    "MOCK_RESULT_COUNT": "1",
+                }
+            )
+            results = generate_results(
+                config,
+                "scan-closed-port",
+                {"target": {"hosts": ["192.0.2.10"], "ports": ["T:5432"]}, "vts": [{"oid": VT_HTTP}]},
+            )
+
+        self.assertEqual(results[0]["port"], 5432)
+        self.assertEqual(results[0]["type"], "log")
+        self.assertIn("target service is closed", results[0]["description"])
+
+    def test_vt_timeout_scenario_emits_partial_timeout_log_rows(self):
+        with fixture_paths() as paths:
+            config = load_config({"MOCK_SCENARIO": "vt-timeout", "MOCK_VT_METADATA_PATH": paths["metadata"], "MOCK_RESULT_COUNT": "2"})
+            results = generate_results(config, "scan-timeout", {"vts": [{"oid": VT_HTTP}, {"oid": VT_SSH}]})
+
+        self.assertEqual(results[1]["type"], "log")
+        self.assertIn("VT execution timed out", results[1]["description"])
+
+    def test_partial_feed_results_scenario_uses_deterministic_subset(self):
+        with fixture_paths() as paths:
+            config = load_config({"MOCK_SCENARIO": "partial-feed-results", "MOCK_VT_METADATA_PATH": paths["metadata"], "MOCK_RESULT_COUNT": "6"})
+            results = generate_results(
+                config,
+                "scan-partial",
+                {"vts": [{"oid": VT_HTTP}, {"oid": VT_SSH}, {"oid": VT_UNUSED}]},
+            )
+            second = generate_results(config, "scan-partial", {"vts": [{"oid": VT_HTTP}, {"oid": VT_SSH}, {"oid": VT_UNUSED}]})
+
+        self.assertLess(len({row["oid"] for row in results}), 3)
+        self.assertEqual(results, second)
+
 
 def fixture_paths():
     return FeedFixture()
@@ -152,6 +235,13 @@ class FeedFixture:
                 "name": "PostgreSQL Default Credential Check",
                 "family": "Databases",
                 "severity": 7.5,
+            },
+            {
+                "oid": VT_DEPENDENCY,
+                "name": "Dependent HTTP Vulnerability Check",
+                "family": "Web application abuses",
+                "severity": 5.0,
+                "tags": {"required_key": "Services/www"},
             },
         ]
         profile = {

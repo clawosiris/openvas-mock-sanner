@@ -305,7 +305,7 @@ modes:
 - `delete-refused`
 - `duplicate-result-page`
 
-Add feed-aware scenarios only after baseline feed-backed success is stable:
+Implemented feed-aware scenarios:
 
 - `auth-missing`
   - credentialed/local VTs are deprioritized or reported as log findings
@@ -320,6 +320,10 @@ Add feed-aware scenarios only after baseline feed-backed success is stable:
 
 Runtime scanner failures remain scenario behavior. They must not be inferred
 solely from feed metadata.
+
+`GET /feed/diagnostics` exposes strict-mode state, loaded fixture counts, and
+permissive-mode skipped input diagnostics so missing, stale, or incomplete feed
+fixtures can be asserted directly without polluting raw scanner results.
 
 ## Validation Path
 

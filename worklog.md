@@ -1,5 +1,33 @@
 # Worklog
 
+## 2026-05-29 Issue #9 Feed-Aware Fault Scenarios
+
+- Branch: `issue9-feed-aware-fault-scenarios`
+- Mission: finish the remaining issue #9 slice for feed-aware fault scenarios.
+- Progress:
+  - Created a fresh checkout from current `origin/main`; the older default
+    checkout is on divergent benchmark history.
+  - Confirmed issue #9 remains open and prior comments identify missing/stale/
+    incomplete feed data plus strict/permissive behavior as the remaining
+    scope after PR #15.
+  - Inspecting existing config, feed loading, result generation, and scenario
+    tests before patching.
+  - Added `auth-missing`, `dependency-missing`, `port-closed`, `vt-timeout`,
+    and `partial-feed-results` as feed-aware runtime scenarios.
+  - Added `GET /feed/diagnostics` for permissive-mode feed/profile/Notus/SCAP
+    load diagnostics and fixture counts.
+  - Added unit and HTTP contract coverage for strict/permissive behavior and
+    the new scenarios.
+  - Updated README, API/container docs, and feed-backed spec.
+- Current state:
+  - Local verification passed.
+- Verification:
+  - `python3 -m unittest discover` passed: 49 tests, 2 skipped.
+  - `SCAN_EXAMPLES_PATH=/home/node/.openclaw/workspace-dev-gea/tmp/scan-examples-plan python3 -m unittest discover` passed: 49 tests.
+  - `git diff --check` passed.
+- Next:
+  - Rebase, push, and open PR.
+
 ## 2026-05-26 Issue #9 Notus/SCAP Runtime Fixtures
 
 - Branch: `issue9-notus-scap-fixtures`

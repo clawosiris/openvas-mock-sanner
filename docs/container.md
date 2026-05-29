@@ -95,3 +95,5 @@ for the VT metadata endpoint and downstream enrichment.
 Set `MOCK_FEED_STRICT=true` when test startup should fail if a configured feed
 or profile file is missing or invalid. With the default `false`, invalid
 optional files are skipped and synthetic generation remains available.
+`GET /feed/diagnostics` exposes the skipped input diagnostics and loaded feed
+fixture counts for debugging container-mounted fixtures.

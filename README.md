@@ -97,7 +97,15 @@ Supported scenarios:
 
 `success-basic`, `success-large-report`, `empty-report`, `delayed-findings`,
 `stop-running`, `scanner-failure`, `malformed-results`,
-`transient-results-error`, `delete-refused`, and `duplicate-result-page`.
+`transient-results-error`, `delete-refused`, `duplicate-result-page`,
+`auth-missing`, `dependency-missing`, `port-closed`, `vt-timeout`, and
+`partial-feed-results`.
+
+The feed-aware scenarios are deterministic fixture behaviors for feed-backed
+mode. They downgrade credentialed, dependency-bound, or closed-port findings to
+raw log rows, emit timeout log rows, or restrict generation to a stable subset
+of selected feed OIDs. `GET /feed/diagnostics` reports skipped optional feed,
+profile, Notus, or SCAP inputs when `MOCK_FEED_STRICT=false`.
 
 `MOCK_FAILURE_AT` accepts lifecycle points such as `create`, `start`,
 `status:3`, `results:2`, and `delete`.

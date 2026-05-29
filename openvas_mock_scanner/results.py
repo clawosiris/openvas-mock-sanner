@@ -98,13 +98,15 @@ def _feed_results(config: Config, scan_id: str, payload: dict[str, Any], context
         candidates,
         key=lambda vt: (-_vt_score(vt, ports, hosts), _stable_rank(config, scan_id, digest, vt.oid)),
     )
+    if config.scenario == "partial-feed-results" and len(ranked) > 1:
+        ranked = [vt for index, vt in enumerate(ranked) if index % 2 == 0] or ranked[:1]
 
     rows = []
     for ordinal in range(1, config.result_count + 1):
         vt = ranked[(ordinal - 1) % len(ranked)]
         host = hosts[(ordinal - 1) % len(hosts)]
-        service = _service_for_vt(vt, host, ports, ordinal)
-        rows.append(_feed_result(config, scan_id, ordinal, vt, host, service))
+        service = _service_for_vt(config, vt, host, ports, ordinal)
+        rows.append(_feed_result(config, scan_id, ordinal, vt, host, service, ports))
     return rows
 
 
@@ -115,14 +117,32 @@ def _feed_result(
     vt: object,
     host: HostProfile,
     service: ServiceProfile,
+    scan_port_hints: tuple[int, ...] = (),
 ) -> dict[str, object]:
     severity = float(getattr(vt, "severity"))
     timestamp = (config.clock_start + timedelta(seconds=ordinal * 10)).strftime("%Y-%m-%dT%H:%M:%SZ")
     message = _feed_message(vt, host, service, severity)
+    finding_type = "alarm" if severity >= 4.0 else "log"
+    if config.scenario == "auth-missing" and _auth_missing(vt, host, service):
+        finding_type = "log"
+        severity = 0.0
+        message = f"Credential-dependent VT skipped for {host.host}: usable authentication is missing."
+    elif config.scenario == "dependency-missing" and _dependency_like(vt):
+        finding_type = "log"
+        severity = 0.0
+        message = f"Dependent VT skipped for {host.host}: required prerequisite result is missing."
+    elif config.scenario == "port-closed" and _port_closed(service, host, scan_port_hints):
+        finding_type = "log"
+        severity = 0.0
+        message = f"VT skipped for {host.host}:{service.port}/{service.protocol}: target service is closed in the fixture profile."
+    elif config.scenario == "vt-timeout" and ordinal % 2 == 0:
+        finding_type = "log"
+        severity = 0.0
+        message = f"VT execution timed out for {getattr(vt, 'oid')} on {host.host}; partial feed-backed result emitted."
     return {
         "id": f"{scan_id}-result-{ordinal:06d}",
         "ordinal": ordinal,
-        "type": "alarm" if severity >= 4.0 else "log",
+        "type": finding_type,
         "ip_address": host.host,
         "hostname": host.hostname or host.host,
         "port": service.port,
@@ -204,7 +224,15 @@ def _stable_rank(config: Config, scan_id: str, payload_digest: str, oid: str) ->
     return sha256(f"{config.seed}:{config.scenario}:{scan_id}:{payload_digest}:{oid}".encode("utf-8")).hexdigest()
 
 
-def _service_for_vt(vt: object, host: HostProfile, ports: tuple[int, ...], ordinal: int) -> ServiceProfile:
+def _service_for_vt(config: Config, vt: object, host: HostProfile, ports: tuple[int, ...], ordinal: int) -> ServiceProfile:
+    if host.services and ports:
+        matching_services = [service for service in host.services if service.port in ports]
+        if matching_services:
+            ranked = sorted(matching_services, key=lambda service: (-_service_score(vt, service, ports), service.port, service.name))
+            return ranked[(ordinal - 1) % len(ranked)]
+        if config.scenario == "port-closed":
+            port = ports[(ordinal - 1) % len(ports)]
+            return ServiceProfile(port=port, protocol="tcp", name=_service_name(port))
     if host.services:
         ranked = sorted(host.services, key=lambda service: (-_service_score(vt, service, ports), service.port, service.name))
         return ranked[(ordinal - 1) % len(ranked)]
@@ -242,3 +270,32 @@ def _feed_message(vt: object, host: HostProfile, service: ServiceProfile, severi
     if severity > 0:
         return f"{prefix} Feed metadata indicates this VT should be reportable for compatibility testing."
     return f"{prefix} Informational feed-backed scanner finding."
+
+
+def _auth_missing(vt: object, host: HostProfile, service: ServiceProfile) -> bool:
+    text = _vt_text(vt)
+    if not any(term in text for term in ("auth", "credential", "local security", "ssh", "smb", "login")):
+        return False
+    auth_values = [str(value).strip().lower() for value in host.auth.values()]
+    service_auth = str(host.auth.get(service.name, "")).strip().lower()
+    return service_auth not in {"success", "succeeded", "ok", "true", "1"} and "success" not in auth_values
+
+
+def _dependency_like(vt: object) -> bool:
+    text = _vt_text(vt)
+    tags = getattr(vt, "tags")
+    tag_keys = " ".join(str(key).lower() for key in tags) if isinstance(tags, dict) else ""
+    return any(term in f"{text} {tag_keys}" for term in ("dependency", "depends", "required_key", "prerequisite"))
+
+
+def _port_closed(service: ServiceProfile, host: HostProfile, scan_port_hints: tuple[int, ...]) -> bool:
+    if not scan_port_hints:
+        return False
+    open_ports = {profile.port for profile in host.services}
+    return service.port in scan_port_hints and service.port not in open_ports
+
+
+def _vt_text(vt: object) -> str:
+    tags = getattr(vt, "tags")
+    tag_text = " ".join(str(value) for value in tags.values()) if isinstance(tags, dict) else ""
+    return f"{getattr(vt, 'name')} {getattr(vt, 'family')} {tag_text}".lower()
