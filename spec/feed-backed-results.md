@@ -40,8 +40,8 @@ Add these optional environment variables:
   - can fill advisory severity, CVSS vector, CVE summary, and references
 - `MOCK_FEED_STRICT`
   - default: `false`
-  - when `true`, startup fails if configured feed/profile paths are unreadable
-    or invalid
+  - when `true`, startup fails if configured VT metadata, target profile,
+    Notus advisory, or SCAP/CVE files are unreadable or invalid
   - when `false`, invalid optional files are reported in diagnostics and the
     affected enrichment layer is skipped
 
@@ -409,13 +409,15 @@ Integration tests, where practical:
 - Documentation explains how to run synthetic mode, feed-backed mode, and the
   small fixture validation path.
 
-## Open Questions
+## Resolved Design Notes
 
-- Which exact `vt-metadata.json` schema variant should be treated as canonical:
-  the current `scan-examples` output, the feed container path, or both?
-- Should large real feed fixtures remain external to the repository, with only
-  minimized fixtures committed for tests?
-- Should diagnostics be exposed through `/capabilities`, `/health`, or only
-  logs?
-- Should feed-backed mode cap result count by selected OID count, or may it
-  reuse a VT across multiple hosts/services to satisfy `MOCK_RESULT_COUNT`?
+- The loader accepts several small JSON fixture shapes instead of requiring a
+  single canonical full-feed export. The `scan-examples` fixture shape remains
+  the primary validation target.
+- Large real feed fixtures stay external to the repository; unit and CI tests
+  use minimized committed fixtures.
+- Diagnostics are exposed through `GET /feed/diagnostics`, not `/health` or
+  `/capabilities`.
+- Feed-backed mode may reuse selected VTs across multiple hosts/services to
+  satisfy `MOCK_RESULT_COUNT`. The `partial-feed-results` scenario is the
+  explicit way to force a deterministic subset of selected feed OIDs.
