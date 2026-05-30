@@ -91,8 +91,9 @@ CI publishes successful `main`, `devel`, and `v*` tag builds to:
 ghcr.io/clawosiris/openvas-mock-scanner
 ```
 
-Release tags publish semantic image tags and create GitHub releases. The
-scheduled nightly workflow builds and publishes `ghcr.io/clawosiris/openvas-mock-scanner:nightly`.
+Release tags publish both the literal Git tag, such as `v0.2.1`, and semantic
+image tags without the leading `v`, such as `0.2.1` and `0.2`. The scheduled
+nightly workflow builds and publishes `ghcr.io/clawosiris/openvas-mock-scanner:nightly`.
 
 Supported scenarios:
 
