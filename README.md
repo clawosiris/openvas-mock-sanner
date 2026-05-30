@@ -13,6 +13,7 @@ failure scenarios that gvmd-compatible clients can use as a repeatable fixture.
 - [Container usage](docs/container.md)
 - [HTTP API](docs/api.md)
 - [Release and nightly builds](docs/release.md)
+- [Upstream OpenVAS watch](docs/upstream-watch.md)
 - [Compatibility mock contract](spec/compatibility-mock-server.md)
 - [Implementation spec](spec/implementation-spec.md)
 - [Test plan](spec/test-plan.md)

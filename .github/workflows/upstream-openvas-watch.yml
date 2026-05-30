@@ -1,0 +1,54 @@
+name: Upstream OpenVAS Watch
+
+on:
+  schedule:
+    - cron: "43 5 * * *"
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: "Optional upstream base commit/ref to compare from"
+        required: false
+        type: string
+      dry_run:
+        description: "Run classification without filing issues or updating state"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+concurrency:
+  group: upstream-openvas-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    name: Check upstream scanner changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run upstream watcher
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OLLAMA_CLOUD_BASE_URL: ${{ secrets.OLLAMA_CLOUD_BASE_URL }}
+          OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+          OLLAMA_PRIMARY_MODEL: qwen2.5-coder:7b
+          OLLAMA_ESCALATION_MODEL: qwen2.5-coder:14b
+          UPSTREAM_WATCH_BASE_REF: ${{ inputs.base_ref }}
+        run: |
+          set -euo pipefail
+          args=(--update-state)
+          if [ "${{ inputs.dry_run || false }}" = "true" ]; then
+            args=(--dry-run)
+          fi
+          python tools/upstream_openvas_watcher.py "${args[@]}"
