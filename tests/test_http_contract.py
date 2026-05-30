@@ -86,6 +86,7 @@ class HttpContractTests(unittest.TestCase):
             self.assertEqual(body["status"], "ok")
             self.assertEqual(service.request("GET", "/health/alive")[0], 200)
             self.assertEqual(service.request("HEAD", "/scans")[0], 204)
+            self.assertEqual(service.request("HEAD", "/feed/diagnostics")[0], 200)
 
             self.assertEqual(service.request("GET", "/missing")[0], 404)
             status, body = service.raw_request("POST", "/scans", "{")
@@ -122,6 +123,15 @@ class HttpContractTests(unittest.TestCase):
             self.assertEqual(service.request("DELETE", f"/scans/{scan_id}")[0], 204)
             self.assertEqual(service.request("GET", f"/scans/{scan_id}/status")[0], 404)
             self.assertEqual(service.request("POST", "/scans/nope/start")[0], 404)
+
+    def test_feed_diagnostics_endpoint_reports_permissive_skips(self):
+        with Service({"MOCK_VT_METADATA_PATH": "/does/not/exist.json"}) as service:
+            status, _, body = service.request("GET", "/feed/diagnostics")
+
+        self.assertEqual(status, 200)
+        self.assertFalse(body["feed_strict"])
+        self.assertEqual(body["metadata_count"], 0)
+        self.assertTrue(any("skipped VT metadata" in item for item in body["diagnostics"]))
 
     def test_openvasd_results_expose_only_raw_scanner_fields(self):
         with Service() as service:

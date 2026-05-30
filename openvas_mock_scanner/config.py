@@ -21,6 +21,11 @@ SCENARIOS = {
     "transient-results-error",
     "delete-refused",
     "duplicate-result-page",
+    "auth-missing",
+    "dependency-missing",
+    "port-closed",
+    "vt-timeout",
+    "partial-feed-results",
 }
 
 FAILURE_POINTS = {"create", "start", "status", "results", "delete"}

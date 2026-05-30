@@ -50,6 +50,12 @@ fixture provides them. SCAP/CVE metadata from `MOCK_SCAP_METADATA_PATH` may
 fill advisory severity, CVSS vector, references, and summary fields. This
 metadata is intentionally separate from raw scanner results.
 
+`GET /feed/diagnostics`
+
+Returns feed fixture load counts and non-fatal diagnostics. This is primarily
+for permissive feed-backed tests where `MOCK_FEED_STRICT=false` and an optional
+VT metadata, target profile, Notus, or SCAP fixture is missing or invalid.
+
 ## Scan Lifecycle
 
 `POST /scans`
@@ -115,3 +121,15 @@ Errors use a stable JSON envelope:
 
 Fault scenarios and `MOCK_FAILURE_AT` use the same envelope so manager tests can
 exercise retry, import, and cleanup behavior.
+
+Feed-aware scenarios are explicit runtime scenarios, not behavior inferred
+solely from feed metadata:
+
+- `auth-missing` downgrades credentialed or local checks to log findings when
+  the target profile does not provide successful auth.
+- `dependency-missing` downgrades dependency-bound checks to log findings.
+- `port-closed` reports selected checks against closed profile ports as log
+  findings.
+- `vt-timeout` emits deterministic timeout log rows for a subset of findings.
+- `partial-feed-results` restricts generation to a deterministic subset of the
+  selected feed OIDs.
