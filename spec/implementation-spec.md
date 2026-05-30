@@ -16,7 +16,7 @@ The repository must produce a runnable mock scanner service with:
 
 - a documented local development command
 - a documented test command
-- a compatibility mode enabled by default on the `devel` branch
+- compatibility behavior enabled by default
 - HTTP endpoints matching the compatibility contract
 - deterministic scenario behavior
 - enough tests to catch protocol regressions before gvmd integration tests run
@@ -78,7 +78,12 @@ Required endpoints:
 - `GET /health`
 - `GET /capabilities`
 - `GET /preferences`
+- `GET /scans/preferences`
+- `GET /vts`
+- `GET /vts/{oid}`
+- `GET /feed/diagnostics`
 - `POST /scans`
+- `POST /scans/{scan_id}`
 - `POST /scans/{scan_id}/start`
 - `POST /scans/{scan_id}/stop`
 - `GET /scans/{scan_id}/status`
@@ -90,7 +95,7 @@ Common error behavior:
 - unknown routes return `404`
 - invalid JSON request bodies return `400`
 - unknown scan ids return `404`
-- unsupported transitions return a deterministic `409`
+- unsupported transitions return deterministic documented `4xx` responses
 - injected failures use the status code documented by the scenario
 - every error body contains `error.code` and `error.message`
 
@@ -172,8 +177,8 @@ fields such as:
 - `tags`
 
 Internal fixture generation may keep richer source data for deterministic
-scenario construction, and `/vts` or future VT metadata endpoints may expose
-feed-backed VT details keyed by OID.
+scenario construction. `/vts` and `/vts/{oid}` expose feed-backed VT details
+keyed by OID.
 
 Severity/threat mapping must be stable:
 
@@ -185,10 +190,12 @@ Severity/threat mapping must be stable:
 
 ## Result Retrieval
 
-`GET /scans/{scan_id}/results` must support offset/limit retrieval.
+`GET /scans/{scan_id}/results` must support openvasd range retrieval and
+offset/limit retrieval.
 
 Required query parameters:
 
+- `range=START-END`
 - `offset`
 - `limit`
 
@@ -196,7 +203,6 @@ Optional accepted aliases:
 
 - `page`
 - `page_size`
-- `since`
 
 Response fields:
 
@@ -273,7 +279,7 @@ Default data:
 
 ### `delete-refused`
 
-- delete while active returns deterministic `409`
+- delete while active returns deterministic `406`
 - status remains accessible afterward
 
 ### `duplicate-result-page`

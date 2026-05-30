@@ -65,7 +65,7 @@ Verify:
 - `stop` on terminal scans returns the documented response
 - `delete` marks scans as deleted
 - requests for deleted or unknown scans return deterministic responses
-- unsupported transitions return `409`
+- unsupported transitions return deterministic documented `4xx` responses
 
 ### Result Generation
 
@@ -76,7 +76,7 @@ Verify:
 - internal host distribution is stable for a given host count
 - severity/threat mapping is stable for fixture and VT metadata generation
 - internal fixture rows keep enough rich source data to derive raw scanner
-  messages and future VT metadata
+  messages and VT metadata
 - generated timestamps are based on `MOCK_CLOCK_START`
 - no generated fixture includes real credentials or customer data
 - public `/scans/{id}/results` projections expose only raw scanner result
@@ -139,6 +139,7 @@ Verify:
 - capabilities include `api_version`, `scanner_name`, and feature flags
 - `GET /preferences` returns `200`
 - every preference includes `id`, `name`, `type`, `default`, and `required`
+- `GET /scans/preferences` returns the openvasd-shaped preference list
 - responses are stable across repeated calls
 
 ### Scan Lifecycle
@@ -146,8 +147,10 @@ Verify:
 Verify:
 
 - `POST /scans` returns `201`
-- response includes id matching `scan-[0-9]{4}`
-- `POST /scans/{id}/start` returns `204`
+- response is a JSON string containing either the supplied `scan_id` or an
+  allocated id matching `scan-[0-9]{4}`
+- `POST /scans/{id}` with `{"action":"start"}` returns `204`
+- `POST /scans/{id}/start` remains available as a legacy alias
 - `GET /scans/{id}/status` returns `200`
 - `POST /scans/{id}/stop` returns `204` for active scans
 - `GET /scans/{id}/results` returns `200`
@@ -232,7 +235,7 @@ Expected:
 
 Expected:
 
-- delete while active returns `409`
+- delete while active returns `406`
 - error code is stable
 - scan remains queryable
 - delete after terminal status follows documented behavior

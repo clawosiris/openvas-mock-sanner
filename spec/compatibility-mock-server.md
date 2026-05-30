@@ -22,7 +22,8 @@ In scope:
 - create, start, stop, status, results, capabilities, preferences, and delete
   flows
 - paginated or ranged result retrieval
-- rich synthetic result data for report ingestion tests
+- raw openvasd-shaped scanner result rows for report ingestion tests, with
+  richer VT/feed metadata exposed separately
 - scripted success, stop, failure, timeout, malformed response, and retry
   scenarios
 - stable fixture data that can be compared in automated tests
@@ -37,14 +38,10 @@ Out of scope:
 
 ## Compatibility Mode
 
-Implementations may keep the benchmark API from `mock-server.md` as the default
-mode. The stricter contract should be enabled explicitly, for example with:
-
-- `MOCK_COMPATIBILITY_MODE=1`
-- a compatibility-specific binary or command
-- a compatibility-specific config file
-
-The chosen activation mechanism must be documented by the implementation.
+The repository now implements this compatibility contract as the default
+service behavior. No `MOCK_COMPATIBILITY_MODE` flag is required. Legacy helper
+endpoints may remain available for older mock clients, but the openvasd-shaped
+paths described here are the primary contract.
 
 ## Required Configuration
 
@@ -124,14 +121,17 @@ Minimum fields:
 }
 ```
 
-### `GET /preferences`
+### `GET /preferences` and `GET /scans/preferences`
 
-Return deterministic scanner preferences.
+Return deterministic scanner preferences. `GET /preferences` returns the
+legacy wrapper object used by older mock clients. `GET /scans/preferences`
+returns the openvasd-shaped preference list used by manager integrations.
 
 Response:
 
 - HTTP `200`
-- JSON object with a `preferences` array
+- JSON object with a `preferences` array for `/preferences`
+- JSON array for `/scans/preferences`
 
 Each preference must include:
 
@@ -153,15 +153,38 @@ Request:
 Response:
 
 - HTTP `201`
-- JSON object containing a stable scan id
+- JSON string containing the stable scan id
 
 Example:
 
 ```json
-{
-  "id": "scan-0001"
-}
+"scan-0001"
 ```
+
+If the request body contains `scan_id`, the mock uses it as the scanner id.
+This matches gvmd/openvasd integration paths that pass the report id through to
+the scanner. Otherwise the mock allocates `scan-0001`, `scan-0002`, and so on.
+
+### `POST /scans/{scan_id}`
+
+Perform an openvasd-style scan action.
+
+Request:
+
+```json
+{"action":"start"}
+```
+
+or:
+
+```json
+{"action":"stop"}
+```
+
+Response:
+
+- HTTP `204`
+- no body
 
 ### `POST /scans/{scan_id}/start`
 
@@ -176,6 +199,9 @@ Response:
 Repeated start requests must be deterministic. They may be idempotent or return
 a documented `4xx` error, but must not change behavior between runs.
 
+This endpoint is a legacy alias. Prefer `POST /scans/{scan_id}` with an action
+body for drop-in openvasd compatibility.
+
 ### `POST /scans/{scan_id}/stop`
 
 Stop a running, queued, requested, or stored scan.
@@ -187,6 +213,9 @@ Response:
 
 Stopping an already terminal scan must return a deterministic documented
 response.
+
+This endpoint is a legacy alias. Prefer `POST /scans/{scan_id}` with an action
+body for drop-in openvasd compatibility.
 
 ### `GET /scans/{scan_id}/status`
 
@@ -225,8 +254,6 @@ support scenarios where:
 
 - status remains non-terminal for several polls
 - progress moves forward normally
-- progress is missing
-- progress is temporarily invalid
 - the scan succeeds
 - the scan is stopped
 - the scan fails with a scanner error
@@ -240,11 +267,11 @@ are implemented, behavior must be documented.
 
 Supported query parameters:
 
+- `range=START-END`
 - `offset`
 - `limit`
 - `page`
 - `page_size`
-- `since`
 
 Response:
 
@@ -291,6 +318,10 @@ Response:
 Repeated deletes for an already deleted scan must return a deterministic
 documented response. Compatibility scenarios should include both successful
 delete and scanner-refused delete behavior.
+
+In the current implementation, the `delete-refused` scenario returns HTTP
+`406` while the scan is still active and a later delete succeeds after the scan
+reaches a terminal state.
 
 ## Result Data Requirements
 

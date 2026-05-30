@@ -1,5 +1,31 @@
 # Worklog
 
+## 2026-05-30 Documentation Consistency Review
+
+- Branch: `docs/current-functionality-consistency`
+- Mission: review documentation against current mock scanner behavior and fix
+  stale contract wording.
+- Progress:
+  - Filed issue #17 for an explicit Community Feed fixture importer.
+  - Created a fresh checkout from `origin/main`; the older local checkout is on
+    stale divergent benchmark history.
+  - Reviewed README, API docs, container docs, compatibility spec,
+    implementation spec, feed-backed spec, test plan, server/config/result
+    code, and HTTP/scenario tests.
+  - Identified stale documentation around compatibility mode activation, scan
+    creation response shape, raw-vs-rich result payload boundaries, delete
+    refusal status, `/vts` endpoint maturity, and unsupported transition
+    status expectations.
+  - Updated API/spec/test-plan docs to match the current implementation and
+    HTTP contract tests.
+- Current state:
+  - Local verification passed.
+- Verification:
+  - `python3 -m unittest discover` passed: 49 tests, 2 skipped.
+  - `git diff --check` passed.
+- Next:
+  - Rebase, push, and open PR.
+
 ## 2026-05-29 Issue #9 Feed-Aware Fault Scenarios
 
 - Branch: `issue9-feed-aware-fault-scenarios`

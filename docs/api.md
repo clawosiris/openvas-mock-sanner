@@ -20,7 +20,8 @@ Returns process health and the active scenario.
 
 Returns the fixture API version and supported lifecycle features.
 
-`HEAD /scans`, `HEAD /vts`, `HEAD /health`
+`HEAD /scans`, `HEAD /vts`, `HEAD /health`, `HEAD /notus`,
+`HEAD /feed/diagnostics`
 
 Return openvasd-style metadata headers: `api-version`, `feed-version`, and
 `authentication`.
@@ -55,6 +56,12 @@ metadata is intentionally separate from raw scanner results.
 Returns feed fixture load counts and non-fatal diagnostics. This is primarily
 for permissive feed-backed tests where `MOCK_FEED_STRICT=false` and an optional
 VT metadata, target profile, Notus, or SCAP fixture is missing or invalid.
+
+`GET /notus`
+
+Legacy discovery helper retained for older mock clients. It returns an empty
+list; package advisory data is exposed through merged VT metadata when
+`MOCK_NOTUS_ADVISORIES_PATH` is configured.
 
 ## Scan Lifecycle
 
