@@ -51,7 +51,7 @@ Common tags:
 - `latest` from `main`
 - `devel` from `devel`
 - `nightly` from the scheduled nightly workflow
-- `vX.Y.Z`, `X.Y`, and commit SHA tags from release tags
+- `vX.Y.Z`, `X.Y.Z`, `X.Y`, and commit SHA tags from release tags
 
 ## Replacement Pattern
 

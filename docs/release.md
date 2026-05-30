@@ -27,7 +27,8 @@ For `v*` tags, the workflow:
 
 - runs the full test matrix
 - builds and smoke-tests the container
-- publishes semantic container tags to GHCR
+- publishes both the literal Git tag (`vX.Y.Z`) and semantic container tags
+  without the leading `v` (`X.Y.Z` and `X.Y`) to GHCR
 - creates a GitHub Release with generated release notes
 
 Pre-release tags such as `v0.2.0-rc.1` are marked as GitHub pre-releases.
