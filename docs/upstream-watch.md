@@ -24,8 +24,11 @@ The classifier decisions are:
   change may matter but the model did not classify it cleanly.
 
 State is stored in the repository Actions variable
-`OPENVAS_SCANNER_LAST_SEEN`. On the first run, the workflow initializes that
-variable to the current upstream head and exits without filing an issue.
+`OPENVAS_SCANNER_LAST_SEEN` when GitHub permits the workflow token to write it.
+If that write is blocked, the watcher falls back to a closed issue named
+`Upstream OpenVAS watcher state` with a machine-readable state marker. On the
+first run, the workflow initializes state to the current upstream head and exits
+without filing a replication issue.
 
 ## Required Secrets
 

@@ -22,6 +22,8 @@ DEFAULT_STATE_VARIABLE = "OPENVAS_SCANNER_LAST_SEEN"
 DEFAULT_PRIMARY_MODEL = "qwen2.5-coder:7b"
 DEFAULT_ESCALATION_MODEL = "qwen2.5-coder:14b"
 DEFAULT_CONFIDENCE_THRESHOLD = 0.74
+STATE_ISSUE_TITLE = "Upstream OpenVAS watcher state"
+STATE_ISSUE_MARKER = "<!-- openvas-mock-scanner-upstream-watch-state -->"
 LOCAL_GH_BIN = Path("/home/linuxbrew/.linuxbrew/bin/gh")
 
 RELEVANT_PATH_PATTERNS = (
@@ -291,18 +293,85 @@ def read_state(repo: str, variable: str) -> str:
     try:
         completed = gh("api", f"repos/{repo}/actions/variables/{variable}", "--jq", ".value", check=False)
     except FileNotFoundError:
-        return ""
-    if completed.returncode != 0:
-        return ""
-    return completed.stdout.strip()
+        completed = None
+    if completed and completed.returncode == 0:
+        return completed.stdout.strip()
+    return read_state_issue(repo)
 
 
 def write_state(repo: str, variable: str, value: str) -> None:
     exists = gh("api", f"repos/{repo}/actions/variables/{variable}", "--jq", ".name", check=False).returncode == 0
     if exists:
-        gh("api", "--method", "PATCH", f"repos/{repo}/actions/variables/{variable}", "-f", f"name={variable}", "-f", f"value={value}")
+        completed = gh("api", "--method", "PATCH", f"repos/{repo}/actions/variables/{variable}", "-f", f"name={variable}", "-f", f"value={value}", check=False)
     else:
-        gh("api", "--method", "POST", f"repos/{repo}/actions/variables", "-f", f"name={variable}", "-f", f"value={value}")
+        completed = gh("api", "--method", "POST", f"repos/{repo}/actions/variables", "-f", f"name={variable}", "-f", f"value={value}", check=False)
+    if completed.returncode == 0:
+        return
+    print("Could not update Actions variable state; falling back to issue-backed state.", file=sys.stderr)
+    write_state_issue(repo, value)
+
+
+def state_issue_body(value: str) -> str:
+    return textwrap.dedent(
+        f"""
+        {STATE_ISSUE_MARKER}
+
+        This issue stores automation state for the scheduled upstream OpenVAS
+        watcher. It is not an implementation task.
+
+        Last seen upstream commit:
+
+        ```text
+        {value}
+        ```
+        """
+    ).strip()
+
+
+def state_issue(repo: str) -> dict[str, object] | None:
+    completed = gh(
+        "issue",
+        "list",
+        "--repo",
+        repo,
+        "--state",
+        "all",
+        "--search",
+        f"{STATE_ISSUE_TITLE} in:title",
+        "--json",
+        "number,title,body,state",
+        "--limit",
+        "10",
+        check=False,
+    )
+    if completed.returncode != 0 or not completed.stdout.strip():
+        return None
+    for issue in json.loads(completed.stdout):
+        if issue.get("title") == STATE_ISSUE_TITLE and STATE_ISSUE_MARKER in str(issue.get("body", "")):
+            return issue
+    return None
+
+
+def read_state_issue(repo: str) -> str:
+    issue = state_issue(repo)
+    if not issue:
+        return ""
+    match = re.search(r"```text\s+([0-9a-f]{40})\s+```", str(issue.get("body", "")), flags=re.IGNORECASE)
+    return match.group(1) if match else ""
+
+
+def write_state_issue(repo: str, value: str) -> None:
+    body = state_issue_body(value)
+    issue = state_issue(repo)
+    if issue:
+        gh("issue", "edit", str(issue["number"]), "--repo", repo, "--body", body)
+        if issue.get("state") != "CLOSED":
+            gh("issue", "close", str(issue["number"]), "--repo", repo, "--comment", "State updated and closed to keep the tracker clear.", check=False)
+        return
+    created = gh("issue", "create", "--repo", repo, "--title", STATE_ISSUE_TITLE, "--body", body)
+    match = re.search(r"/issues/(\d+)", created.stdout)
+    if match:
+        gh("issue", "close", match.group(1), "--repo", repo, "--comment", "State initialized and closed to keep the tracker clear.", check=False)
 
 
 def issue_exists(repo: str, base_sha: str, head_sha: str) -> str:

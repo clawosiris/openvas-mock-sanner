@@ -56,6 +56,13 @@ class UpstreamWatcherTests(unittest.TestCase):
         self.assertIn("base..head", prompt)
         self.assertIn("rust/src/openvasd/result.rs", prompt)
 
+    def test_issue_state_body_contains_parseable_commit(self):
+        sha = "f039649b0191d12f859128724da0d03dfe73e87a"
+        body = watcher.state_issue_body(sha)
+
+        self.assertIn(watcher.STATE_ISSUE_MARKER, body)
+        self.assertIn(f"```text\n{sha}\n```", body)
+
 
 if __name__ == "__main__":
     unittest.main()
