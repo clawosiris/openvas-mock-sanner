@@ -1,5 +1,33 @@
 # Worklog
 
+## 2026-05-30 UV Migration
+
+- Branch: `chore/migrate-to-uv`
+- Mission: migrate local development and CI test execution to uv while
+  preserving the scanner's no-third-party-runtime-dependency boundary.
+- Progress:
+  - Created a fresh checkout after the previous scratch checkout had a
+    corrupted Git pack.
+  - Confirmed the repository has no existing `pyproject.toml`, lockfile,
+    `requirements.txt`, or package metadata; CI invokes `python -m unittest
+    discover` directly today.
+  - Created branch `chore/migrate-to-uv` from `origin/main` at `e5f6867`.
+  - Added minimal `pyproject.toml` metadata with `tool.uv.package = false` so
+    uv manages the development environment without introducing packaging/build
+    dependencies.
+  - Generated `uv.lock` and added `.venv/` to `.gitignore`.
+  - Updated CI to install `astral-sh/setup-uv@v8.1.0` and run tests through
+    `uv run --locked`.
+  - Updated README run/test commands to use `uv run`.
+- Current state:
+  - Local verification passed; preparing to rebase, push, and open PR.
+- Verification:
+  - `uv run --locked python -m unittest discover` passed: 49 tests, 2 skipped.
+  - `SCAN_EXAMPLES_PATH=/home/node/.openclaw/workspace-dev-gea/tmp/scan-examples-plan uv run --locked python -m unittest discover` passed: 49 tests, 2 skipped.
+  - `git diff --check` passed.
+- Next:
+  - Rebase, push, open PR, and watch CI.
+
 ## 2026-05-30 Documentation Consistency Review
 
 - Branch: `docs/current-functionality-consistency`

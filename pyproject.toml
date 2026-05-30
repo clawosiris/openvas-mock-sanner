@@ -1,0 +1,14 @@
+[project]
+name = "openvas-mock-scanner"
+version = "0.2.0"
+description = "Deterministic OpenVAS/openvasd scanner compatibility mock for Greenbone manager integration tests"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0-or-later"
+authors = [
+    { name = "OpenVAS Mock Scanner contributors" },
+]
+dependencies = []
+
+[tool.uv]
+package = false

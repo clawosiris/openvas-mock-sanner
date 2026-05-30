@@ -19,10 +19,11 @@ failure scenarios that gvmd-compatible clients can use as a repeatable fixture.
 
 ## Run
 
-Requires Python 3.10+ and no third-party packages.
+Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/). The scanner has
+no third-party runtime dependencies.
 
 ```sh
-python3 -m openvas_mock_scanner
+uv run python -m openvas_mock_scanner
 ```
 
 By default the service listens on `127.0.0.1:8080`.
@@ -51,7 +52,7 @@ Runtime configuration is read from environment variables:
 Example scenario selection:
 
 ```sh
-MOCK_SCENARIO=success-large-report MOCK_PORT=8081 python3 -m openvas_mock_scanner
+MOCK_SCENARIO=success-large-report MOCK_PORT=8081 uv run python -m openvas_mock_scanner
 ```
 
 Feed-backed generation is opt-in. When `MOCK_VT_METADATA_PATH` points to a
@@ -113,7 +114,7 @@ profile, Notus, or SCAP inputs when `MOCK_FEED_STRICT=false`.
 ## Test
 
 ```sh
-python3 -m unittest discover
+uv run python -m unittest discover
 ```
 
 The test suite uses only local in-process HTTP servers and requires no external
